@@ -2,9 +2,9 @@
 
 \chapter{The Theory of FDTD}
 \section{Yee Cell}
-Maxwell 方程式支配宏观电磁现象的一组基本方程，这组方程既可以写成积分形式也可以写成微分形式，因此计算电磁学中也有根据积分形式发展而来的积分方程数值解方法和微分方程数值解方法。FDTD 是以由微分形式的麦克斯韦旋度方程出发进行差分离散从而得到的一组时域公式为基础的。
+Maxwell's equations are a set of equations which can be written in differential form or integral form. They are the foundation of macroscopic electromagnetic phenomenas. There are two kinds of numerical solver to Maxwell's equation. One kind of solvers were developed from integral form of Maxwell's equations, called integral equation solvers, including MoM, BEM etc. Another kind of solvers, like FDTD and FEM, were developed from differential form of Maxwell's equations, called differential equation solvers.
 
-麦克斯韦旋度方程为
+FDTD is based on Maxwell's equations in differential form, which are shown as follows. Then Maxwell's equations are modified by discretized in central-difference way.
 \begin{equation}\label{maxwellH}
 \nabla\times\mathbf{\mathit{H}}=\frac{\partial \mathbb{\mathit{D}}}{\partial t}+\mathbf{\mathit{J}},
 \end{equation}
@@ -27,7 +27,7 @@ Maxwell 方程式支配宏观电磁现象的一组基本方程，这组方程既
 %\mu=\mu_0=4\pi\times 10^{-7}H/m.
 %\end{eqnarray*}
 
-在直角坐标系中，\eqref{maxwellH}，\eqref{maxwellH}写为
+In  Cartesian coordinate system，the equation\eqref{maxwellH} and \eqref{maxwellH} are written in following forms:
 \begin{equation}\label{3dmaxwellE}
 \begin{cases}
 \frac{\partial H_z}{\partial y}-\frac{\partial H_y}{\partial z}=\varepsilon\frac{\partial E_x}{\partial t}+\sigma E_x\\
@@ -35,7 +35,7 @@ Maxwell 方程式支配宏观电磁现象的一组基本方程，这组方程既
 \frac{\partial H_y}{\partial x}-\frac{\partial H_x}{\partial y}=\varepsilon\frac{\partial E_z}{\partial t}+\sigma E_z
 \end{cases}
 \end{equation}
-以及
+
 \begin{equation}\label{3dmaxwellH}
 \begin{cases}
 \frac{\partial E_z}{\partial y}-\frac{\partial H_y}{\partial z}=-\mu\frac{\partial H_x}{\partial t}-\sigma_m H_x\\
