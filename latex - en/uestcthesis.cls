@@ -60,7 +60,7 @@
 
 \newcommand{\chapternumberformat@uestcthesis}{\arabic{chapter}}
 \newcommand{\publicationsname@degree}{}%为bachelor选项下使用english选项而设。
-\newcommand{\thesisname@english}{}%为bachelor选项下使用english选项而设。
+\newcommand{\thesisname@english}{Bachelor Thesis of University of Electronic Science and Technology of China}%为bachelor选项下使用english选项而设。
 }
 \newcommand{\master@uestcthesis}{
 \newcommand{\degree@uestcthesis}{master}

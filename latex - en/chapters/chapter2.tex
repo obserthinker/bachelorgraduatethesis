@@ -5,10 +5,10 @@
 Maxwell's equations are a set of equations which can be written in differential form or integral form. They are the foundation of macroscopic electromagnetic phenomenas. There are two kinds of numerical solver to Maxwell's equation. One kind of solvers were developed from integral form of Maxwell's equations, called integral equation solvers, including MoM, BEM etc. Another kind of solvers, like FDTD and FEM, were developed from differential form of Maxwell's equations, called differential equation solvers.
 
 FDTD is based on Maxwell's equations in differential form, which are shown as follows. Then Maxwell's equations are modified by discretized in central-difference way.
-\begin{equation}\label{maxwellH}
+\begin{equation}\label{ch2 eq:maxwellH}
 \nabla\times\mathbf{\mathit{H}}=\frac{\partial \mathbb{\mathit{D}}}{\partial t}+\mathbf{\mathit{J}},
 \end{equation}
-\begin{equation}\label{maxwellE}
+\begin{equation}\label{ch2 eq:maxwellE}
 \nabla\times\mathbf{\mathit{E}}=-\frac{\partial \mathbb{\mathit{B}}}{\partial t}-\mathbf{\mathit{J}}_m.
 \end{equation}
 
@@ -27,8 +27,8 @@ FDTD is based on Maxwell's equations in differential form, which are shown as fo
 %\mu=\mu_0=4\pi\times 10^{-7}H/m.
 %\end{eqnarray*}
 
-In  Cartesian coordinate system，the equation\eqref{maxwellH} and \eqref{maxwellH} are written in following forms:
-\begin{equation}\label{3dmaxwellE}
+In  Cartesian coordinate system，the equation\eqref{ch2 eq:maxwellH} and \eqref{ch2 eq:maxwellH} are written in following forms:
+\begin{equation}\label{ch2 eq:3dmaxwellE}
 \begin{cases}
 \frac{\partial H_z}{\partial y}-\frac{\partial H_y}{\partial z}=\varepsilon\frac{\partial E_x}{\partial t}+\sigma E_x\\
 \frac{\partial H_x}{\partial z}-\frac{\partial H_z}{\partial x}=\varepsilon\frac{\partial E_y}{\partial t}+\sigma E_y\\
@@ -36,7 +36,7 @@ In  Cartesian coordinate system，the equation\eqref{maxwellH} and \eqref{maxwel
 \end{cases}
 \end{equation}
 
-\begin{equation}\label{3dmaxwellH}
+\begin{equation}\label{ch2 eq:3dmaxwellH}
 \begin{cases}
 \frac{\partial E_z}{\partial y}-\frac{\partial H_y}{\partial z}=-\mu\frac{\partial H_x}{\partial t}-\sigma_m H_x\\
 \frac{\partial E_x}{\partial z}-\frac{\partial H_z}{\partial x}=-\mu\frac{\partial H_y}{\partial t}-\sigma_m H_y\\
@@ -44,26 +44,27 @@ In  Cartesian coordinate system，the equation\eqref{maxwellH} and \eqref{maxwel
 \end{cases}.
 \end{equation}
 
-上面的两组六个方程式各场分量关于时间、空间的一阶偏导的方程组，并且各个场量相互嵌套。首先要对连续变量进行离散，包含时间离散和空间离散。令 $u(x,y,z,t)$ 代表 $\mathbf{\mathit{E}}$ 或 $\mathbf{\mathit{H}}$ 在直角坐标系中某一分量。在空间方面，我们假设在各方向上空间是均匀离散的，在 $x$、 $y$、 $z$ 方向上离散的网格长度分别为 $\Delta x$、 $\Delta y$、 $\Delta z$，用 $i$、 $j$、 $k$ 分别表示 $x$、 $y$、 $z$ 方向上的网格标识。在时间方面，我们假设在时间轴上就行均匀离散，离散的时间步长为 $\Delta t$，用字符 $n$ 来表示时间 $t$ 的时刻标识。这样，某一场分量咋看时间和空间域中的离散就可以用如下符号表示：
+The six equations in \eqref{ch2 eq:3dmaxwellE} and \eqref{ch2 eq:3dmaxwellH} are a set of partial differential equations in space-time formulations form which represent each filed vector component. They are hard to deal in that form, so we need to discretize them in space and time at first.Let $u(x,y,z,t)$ represent any field vector component of $\mathbf{\mathit{E}}$ or $\mathbf{\mathit{H}}$ in Cartesian coordinate system. On the aspect of space, we assume that the discreteness on space is uniform, which means the space steps, also called the lengths of grids, are equal to each other in $x$, $y$, and $z$ directions and written as $\Delta x$, $\Delta y$, and $\Delta z$ respectively. We also use $i$, $j$, and $k$ to represent the grid index in directions of $x$, $y$, and $z$ respectively. On the aspect of time, wo assume the discreteness is uniform, too. Besides, we adopt the symbol $\Delta t$ to represent the length of time step, which also called the distance between two iterations, and $n$ to represent the index of time steps. After all, we can represent any field vector component in the following notion to indicate the location where the field vector components are sampled in space and time:
 \begin{equation}
 u(x,y,z,t)=u(i\Delta x,j\Delta y,k\Delta z,n\Delta t)=u^n(i,j,k).
 \end{equation}
 
-一阶偏导数的有限差分格式有多种，例如前向差分、后向差分、中心差分以及指数差分。这里我们选择具有二阶精度的中心差分法。所以，以 $x$ 方向为例，场分量对空间一阶偏导的差分格式为
-\begin{equation}\label{space discrete}
+There are three forms of finite difference, forward, backward, and central difference, which are considered commonly. Here we pick the central difference as it has second-order numerical accuracy. Let us take the $x$ direction as an example to illustrate a field vector component's spatial first partial derivative:
+\begin{equation}\label{ch2 eq:space discrete}
 \frac{\partial u^n(i,j,k)}{\partial x} \approx \frac{
 	u^n(i+\frac{1}{2},j,k)-u^n(i-\frac{1}{2},j,k)
-	}{\Delta x},
+	}{\Delta x}.
 \end{equation}
-场分量对时间的一阶偏导的差分格式为
-\begin{equation}\label{time discrete}
+And the its first partial derivative on time is:
+\begin{equation}\label{ch2 eq:time discrete}
 \frac{\partial u^n(i,j,k)}{\partial t} \approx \frac{
 	u^{n+\frac{1}{2}}(i,j,k)-u^{n-\frac{1}{2}}(i,j,k)
 }{\Delta x}.
 \end{equation}
-现在对\eqref{3dmaxwellH}和\eqref{3dmaxwellE}中的六个方程都进行了离散。接下来就要考虑在空间和时间中对这些离散节点的排布。
 
-在空间中，FDTD 离散的电场和磁场各节点的空间排布如图\ref{fig: yee cell}所示。这就是 Yee 提出的 Yee 元胞的空间离散结构。
+Now we have discretized the six equations in \eqref{ch2 eq:3dmaxwellH} and \eqref{ch2 eq:3dmaxwellE}. The next step we should do is considering how we position those discrete points of every field vector component. The answer is Yee cell.
+
+In space, we position those discrete points like what illustrated in \ref{ch2 fig: yee cell}. This is the spatial structure of Yee cell.
 
 \begin{figure}[hp]
 \centering
@@ -127,23 +128,21 @@ u(x,y,z,t)=u(i\Delta x,j\Delta y,k\Delta z,n\Delta t)=u^n(i,j,k).
 		\node[shape=circle,fill=pink,inner sep=0pt] at ($(\hlen,\hlen)+(0,-\hlen)$) {$E_y$};
 		\node[shape=circle,fill=pink,inner sep=0pt] at ($(\hlen,\hlen)+\coe*(\hlen,\hlen)+(0,-\hlen)$) {$E_y$};
 		\end{tikzpicture}
-\caption{Yee元胞的空间离散结构}\label{fig: yee cell}
+\caption{The spatial discrete structure of Yee cell}\label{ch2 fig: yee cell}
 \end{figure}
 
-由图可见，在 Yee 元胞中，$\mathbf{\mathit{E}}$和$\mathbf{\mathit{H}}$的各自三个场分量在 Yee 元胞表面上进行离散。电场分量$\mathit{E}_x$、$\mathit{E}_y$和$\mathit{E}_z$在 Yee 元胞的棱边中间，方向与棱边一致，磁场分量$\mathit{E}_x$、$\mathit{E}_y$和$\mathit{E}_z$在 Yee 元胞的表面的中心，其方向垂直元胞面。每一个电场分量周围都有四个电场分量环绕，同样，每个磁场分量周围由四个电场分量环绕。这种取样方式符合法拉第感应定律和安培环路定律的自然结构。同时这种结构也适合麦克斯韦方程的差分计算，能够恰当的描述电磁场的传播特性。
+We can see from the figure\ref{ch2 fig: yee cell} that in Yee cell each three components of $\mathbf{\mathit{E}}$ and $\mathbf{\mathit{H}}$ are discretized on the surface. Electric field components $\mathit{E}_x$, $\mathit{E}_y$, and $\mathit{E}_z$ are on the center of edges, and magnetic field components $\mathit{H}_x$, $\mathit{H}_y$, and $\mathit{H}_z$ are on the center of surfaces. In this way, for each electric discrete point there are four magnetic discrete points encircling it. Conversely, for each magnetic discrete point there will be four electric discrete points encircling it. This way of distributing discrete points fit into Faraday's law and Ampere's law in nature. In time aspect, Yee cell adopted the time-stepping manner. For any discrete point in space, the updated value of the electric filed in time is dependent on the stored value of magnetic field of the last time. Iterating the process in a marching-in-time way, we can make an analog to the continuous electromagnetic waves's propagation. 
 
-在时间上，电场和磁场相差半个时间步长，交替离散，从而可以在时间上迭代求解，而不需要进行矩阵求逆运算。
+In summary, Yee cell can describe the interaction between electrics and magnetics naturally. Given a specific problem with specific coefficients, initial state, and boundary condition, we can use FDTD to obtain the distribution of electromagnetic waves in any given transient.
 
-综合空间和时间离散排布结构来看，Yee 元胞可以自然的描述电磁之间相互作用的过程，从而给定相应电磁问题的初始值以及边界条件，就可以利用 FDTD 方法逐时间步推进的求得以后各个时刻空间电磁场的分布。
-
-为了准确描述每一个场分量离散点的位置，我们需要对空间位置进行编号。根据上述各个场分量的空间排布，定义各个方向上的 Yee 元胞棱边为整数编号，棱边的中间位置为半整数编号。具体各个分量的取值如下表所述。
+To indicate the location of discrete points in space and time, we need to give any location of Yee cell a serial number. Here, we follow this rule: in any direction, the serial number of Yee cell's edges is integer, and the serial number of the center of Yee cell's edge is half integer; all time location of electric discrete points are integer, and all time location of magnetic discrete points are half integer. For each field vector component, the serial number in space is illustrated in the following table.
 
 \begin{table}
-\caption{Yee元胞中$\mathbf{\mathit{E}}$和$\mathbf{\mathit{H}}$各分量节点的位置}
+\caption{The serial number of components of $\mathbf{\mathit{E}}$和$\mathbf{\mathit{H}}$ in Yee cell}
 	\centering
 	\begin{tabular}{ccccc}
 		\toprule
-		\multirow{2}{3em}{场分量} & \multicolumn{3}{c}{空间分布位置} & \multirow{2}{6em}{时间分布位置}\\
+		\multirow{2}{3em}{Field components} & \multicolumn{3}{c}{The location in space} & \multirow{2}{6em}{The location in time}\\
 		\cline{2-4}
 		& $x$ & $y$ & $z$ &\\
 		
@@ -161,9 +160,9 @@ u(x,y,z,t)=u(i\Delta x,j\Delta y,k\Delta z,n\Delta t)=u^n(i,j,k).
 
 \section{Yee元胞的Maxwell离散形式}
 
-我们以\eqref{3dmaxwellE}的第一式为例来说明 Yee 元胞的 Maxwell 方程差分格式。根据\eqref{space discrete}和\linebreak[1]\eqref{time discrete}的差分格式，对\eqref{3dmaxwellH}中第一式的各个部分写成离散格式，得到下式。
+我们以\eqref{ch2 eq:3dmaxwellE}的第一式为例来说明 Yee 元胞的 Maxwell 方程差分格式。根据\eqref{ch2 eq:space discrete}和\linebreak[1]\eqref{ch2 eq:time discrete}的差分格式，对\eqref{ch2 eq:3dmaxwellH}中第一式的各个部分写成离散格式，得到下式。
 
-\begin{equation}\label{ex discrete}
+\begin{equation}\label{ch2 eq:ex discrete}
 \begin{split}
 E^{n+1}_{x}\left( i+\frac{1}{2},j,k \right)=&CA(m) \cdot E^{n}_{x}\left( i+\frac{1}{2},j,k \right)+CB(m)\\
 {}&\cdot\left[
@@ -188,7 +187,7 @@ CB(m)=\frac{
 }{
 1+\frac{\sigma(m)\Delta t}{2\varepsilon(m)}	
 }	
-\end{equation}\label{ex discrete simple}
+\end{equation}\label{ch2 eq:ex discrete simple}
 $m$为等号左端场分量的坐标。本文中，为能更简洁说明方法起见，我们假设介质全为无耗介质，即$\sigma=\sigma(m)=0$，则有$CA(m)=1$，$CB(m)=\frac{\Delta t}{\varepsilon(m)}$，所以式\eqref{ex discrete}变为
 \begin{equation}
 \begin{split}
@@ -202,7 +201,7 @@ E^{n+1}_{x}\left( i+\frac{1}{2},j,k \right)=&E^{n}_{x}\left( i+\frac{1}{2},j,k \
 \end{equation}
 
 按照同样的方法对$\mathbf{\mathit{H}}$的场分量进行整理。以$H_x$为例，式\eqref{3dmaxwellH}的第一式整理之后得到
-\begin{equation}\label{hx discrete simple}
+\begin{equation}\label{ch2 eq:hx discrete simple}
 \begin{split}
 H^{n+\frac{1}{2}}_{x}\left( i,j+\frac{1}{2},k+\frac{1}{2} \right)=&H^{n-\frac{1}{2}}_{x}\left( i,j+\frac{1}{2},k+\frac{1}{2} \right)+\frac{\Delta t}{\mu}\\
 {}&\cdot\left[
