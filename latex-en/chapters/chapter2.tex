@@ -1,0 +1,342 @@
+% !Mode:: "TeX:UTF-8"
+
+\chapter{The Theory of FDTD}
+\section{Yee Cell}
+Maxwell's equations are a set of equations which can be written in differential form or integral form. They are the foundation of macroscopic electromagnetic phenomenas. There are two kinds of numerical solver to Maxwell's equation. One kind of solvers were developed from integral form of Maxwell's equations, called integral equation solvers, including MoM, BEM etc. Another kind of solvers, like FDTD and FEM, were developed from differential form of Maxwell's equations, called differential equation solvers.
+
+FDTD is based on Maxwell's equations in differential form, which are shown as follows. Then Maxwell's equations are modified by discretized in central-difference way.
+\begin{equation}\label{ch2 eq:maxwellH}
+\nabla\times\mathbf{\mathit{H}}=\frac{\partial \mathbb{\mathit{D}}}{\partial t}+\mathbf{\mathit{J}},
+\end{equation}
+\begin{equation}\label{ch2 eq:maxwellE}
+\nabla\times\mathbf{\mathit{E}}=-\frac{\partial \mathbb{\mathit{B}}}{\partial t}-\mathbf{\mathit{J}}_m.
+\end{equation}
+
+%各向同性线性介质中的本构关系为
+%\begin{equation}\label{bengouguanxi}
+%\begin{cases}
+%\mathbf{\mathit{D}}&=\varepsilon\mathbf{\mathit{E}}\\
+%\mathbf{\mathit{B}}&=\mu\mathbf{\mathit{H}}\\
+%\mathbf{\mathit{J}}&=\sigma\mathbf{\mathit{E}}\\
+%\mathbf{\mathit{J}}_m&=\sigma_m \mathbf{\mathit{H}}
+%\end{cases}.
+%\end{equation}
+%真空中$$\sigma=0$$，$$\sigma_m=0$$，以及
+%\begin{eqnarray*}
+%\varepsilon=\varepsilon_0=8.85\times 10^{-12}F/m\\
+%\mu=\mu_0=4\pi\times 10^{-7}H/m.
+%\end{eqnarray*}
+
+In  Cartesian coordinate system，the equation\eqref{ch2 eq:maxwellH} and \eqref{ch2 eq:maxwellH} are written in following forms:
+\begin{equation}\label{ch2 eq:3dmaxwellE}
+\begin{cases}
+\frac{\partial H_z}{\partial y}-\frac{\partial H_y}{\partial z}=\varepsilon\frac{\partial E_x}{\partial t}+\sigma E_x\\
+\frac{\partial H_x}{\partial z}-\frac{\partial H_z}{\partial x}=\varepsilon\frac{\partial E_y}{\partial t}+\sigma E_y\\
+\frac{\partial H_y}{\partial x}-\frac{\partial H_x}{\partial y}=\varepsilon\frac{\partial E_z}{\partial t}+\sigma E_z
+\end{cases}
+\end{equation}
+
+\begin{equation}\label{ch2 eq:3dmaxwellH}
+\begin{cases}
+\frac{\partial E_z}{\partial y}-\frac{\partial H_y}{\partial z}=-\mu\frac{\partial H_x}{\partial t}-\sigma_m H_x\\
+\frac{\partial E_x}{\partial z}-\frac{\partial H_z}{\partial x}=-\mu\frac{\partial H_y}{\partial t}-\sigma_m H_y\\
+\frac{\partial E_y}{\partial x}-\frac{\partial H_x}{\partial y}=-\mu\frac{\partial H_z}{\partial t}-\sigma_m H_z
+\end{cases}.
+\end{equation}
+
+The six equations in \eqref{ch2 eq:3dmaxwellE} and \eqref{ch2 eq:3dmaxwellH} are a set of partial differential equations in space-time formulations form which represent each filed vector component. They are hard to deal in that form, so we need to discretize them in space and time at first.Let $u(x,y,z,t)$ represent any field vector component of $\mathbf{\mathit{E}}$ or $\mathbf{\mathit{H}}$ in Cartesian coordinate system. On the aspect of space, we assume that the discreteness on space is uniform, which means the space steps, also called the lengths of grids, are equal to each other in $x$, $y$, and $z$ directions and written as $\Delta x$, $\Delta y$, and $\Delta z$ respectively. We also use $i$, $j$, and $k$ to represent the grid index in directions of $x$, $y$, and $z$ respectively. On the aspect of time, wo assume the discreteness is uniform, too. Besides, we adopt the symbol $\Delta t$ to represent the length of time step, which also called the distance between two iterations, and $n$ to represent the index of time steps. After all, we can represent any field vector component in the following notion to indicate the location where the field vector components are sampled in space and time:
+\begin{equation}
+u(x,y,z,t)=u(i\Delta x,j\Delta y,k\Delta z,n\Delta t)=u^n(i,j,k).
+\end{equation}
+
+There are three forms of finite difference, forward, backward, and central difference, which are considered commonly. Here we pick the central difference as it has second-order numerical accuracy. Let us take the $x$ direction as an example to illustrate a field vector component's spatial first partial derivative:
+\begin{equation}\label{ch2 eq:space discrete}
+\frac{\partial u^n(i,j,k)}{\partial x} \approx \frac{
+	u^n(i+\frac{1}{2},j,k)-u^n(i-\frac{1}{2},j,k)
+	}{\Delta x}.
+\end{equation}
+And the its first partial derivative on time is:
+\begin{equation}\label{ch2 eq:time discrete}
+\frac{\partial u^n(i,j,k)}{\partial t} \approx \frac{
+	u^{n+\frac{1}{2}}(i,j,k)-u^{n-\frac{1}{2}}(i,j,k)
+}{\Delta x}.
+\end{equation}
+
+Now we have discretized the six equations in \eqref{ch2 eq:3dmaxwellH} and \eqref{ch2 eq:3dmaxwellE}. The next step we should do is considering how we position those discrete points of every field vector component. The answer is Yee cell.
+
+In space, we position those discrete points like what illustrated in \ref{ch2 fig: yee cell}. This is the spatial structure of Yee cell.
+
+\begin{figure}[hp]
+\centering
+  \vspace{3.118mm}%
+		\begin{tikzpicture}
+		\def \len {6}
+		\def \hlen {3}
+		\def \coe {-0.75}
+		
+		%back rectangle wigh dashline
+		\draw(0,0) rectangle +(\len,\len);
+		\draw [dashed] ($(0,0)+0.5*(0,\len)$) -- +(\len,0);
+		\draw [dashed] ($(0,0)+0.5*(\len,0)$) -- +(0,\len);
+		
+		%front rectangle wigh dashline
+		\draw($(0,0)+\coe*(\hlen,\hlen)$) rectangle +(\len,\len);
+		\draw [dashed] ($(0,0)+(0,\hlen)+\coe*(\hlen,\hlen)$) -- +(\len,0);
+		\draw [dashed] ($(0,0)+(\hlen,0)+\coe*(\hlen,\hlen)$) -- +(0,\len);
+		
+		%connect two rectangle
+		\draw (0,0) -- ($(0,0)+\coe*(\hlen,\hlen)$);
+		\draw ($(0,0)+(0,\len)$) -- ($(0,0)+(0,\len)+\coe*(\hlen,\hlen)$);
+		\draw ($(0,0)+(\len,0)$) -- ($(0,0)+(\len,0)+\coe*(\hlen,\hlen)$);
+		\draw ($(0,0)+(\len,\len)$) -- ($(0,0)+(\len,\len)+\coe*(\hlen,\hlen)$);
+		
+		%all dashline
+		\draw [dashed] ($(0,0)+(0,\hlen)$) -- ($(0,0)+(0,\hlen)+\coe*(\hlen,\hlen)$);
+		\draw [dashed] ($(0,0)+(\hlen,0)$) -- ($(0,0)+(\hlen,0)+\coe*(\hlen,\hlen)$);
+		\draw [dashed] ($(0,0)+(\len,\hlen)$) -- ($(0,0)+(\len,\hlen)+\coe*(\hlen,\hlen)$);
+		\draw [dashed] ($(0,0)+(\hlen,\len)$) -- ($(0,0)+(\hlen,\len)+\coe*(\hlen,\hlen)$);
+		
+		\draw [dashed] ($(0,0)+0.5*\coe*(\hlen,\hlen)$) -- ++(\len,0) -- ++(0,\len) -- ++(-\len,0) -- cycle;
+		
+		%axis
+		\draw [->] (0,0) -- +(\len+2,0) node[right]{$y$};
+		\draw [->] (0,0) -- +(0,\len+2) node[above]{$z$};
+		\draw [->] (0,0) -- +($(0,0)-(\hlen,\hlen)$) node[below,left]{$x$};
+		
+		%nodes
+		%Hx
+		\node[shape=circle,fill=cyan,inner sep=0pt] at (\hlen,\hlen) {$H_x$};
+		\node[shape=circle,fill=cyan,inner sep=0pt] at ($(\hlen,\hlen)+\coe*(\hlen,\hlen)$) {$H_x$};
+		%Hz		
+		\node[shape=circle,fill=cyan,inner sep=0pt] at ($(0,0)+(\hlen,0)+0.5*\coe*(\hlen,\hlen)$) {$H_z$};
+		\node[shape=circle,fill=cyan,inner sep=0pt] at ($(0,0)+(\hlen,0)+0.5*\coe*(\hlen,\hlen)+(0,\len)$) {$H_z$};
+		%Hy
+		\node[shape=circle,fill=cyan,inner sep=0pt] at ($(0,0)+(0,\hlen)+0.5*\coe*(\hlen,\hlen)$) {$H_y$};
+		\node[shape=circle,fill=cyan,inner sep=0pt] at ($(0,0)+(0,\hlen)+0.5*\coe*(\hlen,\hlen)+(\len,0)$) {$H_y$};
+		%Ez
+		\node[shape=circle,fill=pink,inner sep=0pt] at ($(0,\hlen)$) {$E_z$};
+		\node[shape=circle,fill=pink,inner sep=0pt] at ($(0,\hlen)+\coe*(\hlen,\hlen)$) {$E_z$};
+		\node[shape=circle,fill=pink,inner sep=0pt] at ($(0,\hlen)+(\len,0)$) {$E_z$};
+		\node[shape=circle,fill=pink,inner sep=0pt] at ($(0,\hlen)+\coe*(\hlen,\hlen)+(\len,0)$) {$E_z$};
+		%Ex
+		\node[shape=circle,fill=pink,inner sep=0pt] at ($(0,\hlen)+0.5*\coe*(\hlen,\hlen)+(0,\hlen)$) {$E_x$};
+		\node[shape=circle,fill=pink,inner sep=0pt] at ($(0,\hlen)+0.5*\coe*(\hlen,\hlen)+(\len,0)+(0,\hlen)$) {$E_x$};
+		\node[shape=circle,fill=pink,inner sep=0pt] at ($(0,\hlen)+0.5*\coe*(\hlen,\hlen)+(0,-\hlen)$) {$E_x$};
+		\node[shape=circle,fill=pink,inner sep=0pt] at ($(0,\hlen)+0.5*\coe*(\hlen,\hlen)+(\len,0)+(0,-\hlen)$) {$E_x$};
+		%Ey
+		\node[shape=circle,fill=pink,inner sep=0pt] at ($(\hlen,\hlen)+(0,\hlen)$) {$E_y$};
+		\node[shape=circle,fill=pink,inner sep=0pt] at ($(\hlen,\hlen)+\coe*(\hlen,\hlen)+(0,\hlen)$) {$E_y$};
+		\node[shape=circle,fill=pink,inner sep=0pt] at ($(\hlen,\hlen)+(0,-\hlen)$) {$E_y$};
+		\node[shape=circle,fill=pink,inner sep=0pt] at ($(\hlen,\hlen)+\coe*(\hlen,\hlen)+(0,-\hlen)$) {$E_y$};
+		\end{tikzpicture}
+  \vspace{3.118mm}%
+\caption{The spatial discrete structure of Yee cell}\label{ch2 fig: yee cell}
+  \vspace{2.736mm}%
+\end{figure}
+
+We can see from the figure \ref{ch2 fig: yee cell} that in Yee cell each three components of $\mathbf{\mathit{E}}$ and $\mathbf{\mathit{H}}$ are discretized on the surface. Electric field components $\mathit{E}_x$, $\mathit{E}_y$, and $\mathit{E}_z$ are on the center of edges, and magnetic field components $\mathit{H}_x$, $\mathit{H}_y$, and $\mathit{H}_z$ are on the center of surfaces. In this way, for each electric discrete point there are four magnetic discrete points encircling it. Conversely, for each magnetic discrete point there will be four electric discrete points encircling it. This way of distributing discrete points fit into Faraday's law and Ampere's law in nature. In time aspect, Yee cell adopted the time-stepping manner. For any discrete point in space, the updated value of the electric filed in time is dependent on the stored value of magnetic field of the last time. Iterating the process in a marching-in-time way, we can make an analog to the continuous electromagnetic waves's propagation. 
+
+In summary, Yee cell can describe the interaction between electrics and magnetics naturally. Given a specific problem with specific coefficients, initial state, and boundary condition, we can use FDTD to obtain the distribution of electromagnetic waves in any given transient.
+
+To indicate the location of discrete points in space and time, we need to give any location of Yee cell a serial number. Here, we follow this rule: in any direction, the serial number of Yee cell's edges is integer, and the serial number of the center of Yee cell's edge is half integer; all time location of electric discrete points are integer, and all time location of magnetic discrete points are half integer. For each field vector component, the serial number in space is illustrated in the following table.
+
+\begin{table}
+\caption{The serial number of components of $\mathbf{\mathit{E}}$ and $\mathbf{\mathit{H}}$ in Yee cell}
+	\centering
+	\begin{tabular}{ccccc}
+		\toprule
+		\multirow{2}{5em}{Field components} & \multicolumn{3}{c}{The location in space} & \multirow{2}{6em}{The location in time}\\
+		\cline{2-4}
+		& $x$ & $y$ & $z$ &\\
+		
+		\midrule
+		$E_x$ & $i+\frac{1}{2}$ & $j$ & $k$ & \multirow{3}{1em}{$n$}\\
+		\cline{1-4}
+		$E_y$ & $i$ & $j+\frac{1}{2}$ & $k$ & \\
+		\cline{1-4}
+		$E_z$ & $i$ & $j$ & $k+\frac{1}{2}$ & \\
+		\cline{1-5}
+		
+		$H_x$ & $i$ & $j+\frac{1}{2}$ & $k+\frac{1}{2}$ & \multirow{3}{3em}{$n+\frac{1}{2}$}\\
+		\cline{1-4}
+		$H_y$ & $i+\frac{1}{2}$ & $j$ & $k+\frac{1}{2}$ & \\
+		\cline{1-4}
+		$H_z$ & $i+\frac{1}{2}$ & $j+\frac{1}{2}$ & $k$ & \\		
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\section{The Updating Formulations}
+
+Let us take the \eqref{ch2 eq:3dmaxwellE} as an example to explain the how to update a field vector component and the updating formulations. According to the \eqref{ch2 eq:space discrete} and \eqref{ch2 eq:time discrete}, we change \eqref{ch2 eq:3dmaxwellH} into the discrete form, which shown below:
+
+\begin{equation}\label{ch2 eq:ex discrete}
+\begin{split}
+E^{n+1}_{x}\left( i+\frac{1}{2},j,k \right)=&CA(m) \cdot E^{n}_{x}\left( i+\frac{1}{2},j,k \right)+CB(m)\\
+{}&\cdot\left[
+\frac{H^{n+\frac{1}{2}}_{z}\left(i+\frac{1}{2},j+\frac{1}{2},k\right)-H^{n+\frac{1}{2}}_{z}\left(i+\frac{1}{2},j-\frac{1}{2},k\right)}{\Delta y}\right.\\
+{}&-
+\left.\frac{H^{n+\frac{1}{2}}_{y}\left(i+\frac{1}{2},j,k+\frac{1}{2}\right)-H^{n+\frac{1}{2}}_{z}\left(i+\frac{1}{2},j,k-\frac{1}{2}\right)}{\Delta z}
+\right].
+\end{split}
+\end{equation}
+
+And there has
+\begin{equation}
+CA(m)=\frac{
+	1-\frac{\sigma(m)\Delta t}{2\varepsilon(m)}
+	}{
+	1-\frac{\sigma(m)\Delta t}{2\varepsilon(m)}	
+	},
+\end{equation}
+and
+\begin{equation}
+CB(m)=\frac{
+	\frac{\Delta t}{\varepsilon(m)}
+}{
+1+\frac{\sigma(m)\Delta t}{2\varepsilon(m)}	
+}.
+\end{equation}\label{ch2 eq:ex discrete simple}
+We use $m$ to represent the spatial location the discrete point have which is at the right of equal sign. 
+
+To explain the algorithm in a clear way, we assume all mediums are lossless medium, ie $\sigma=\sigma(m)=0$. Hence, there has $CA(m)=1$, and $CB(m)=\frac{\Delta t}{\varepsilon(m)}$. So, now, \eqref{ch2 eq:ex discrete} is
+
+\begin{equation}
+\begin{split}
+E^{n+1}_{x}\left( i+\frac{1}{2},j,k \right)=&E^{n}_{x}\left( i+\frac{1}{2},j,k \right)+\frac{\Delta t}{\varepsilon(m)}\\
+{}&\cdot\left[
+\frac{H^{n+\frac{1}{2}}_{z}\left(i+\frac{1}{2},j+\frac{1}{2},k\right)-H^{n+\frac{1}{2}}_{z}\left(i+\frac{1}{2},j-\frac{1}{2},k\right)}{\Delta y}\right.\\
+{}&-
+\left.\frac{H^{n+\frac{1}{2}}_{y}\left(i+\frac{1}{2},j,k+\frac{1}{2}\right)-H^{n+\frac{1}{2}}_{z}\left(i+\frac{1}{2},j,k-\frac{1}{2}\right)}{\Delta z}
+\right].
+\end{split}
+\end{equation}
+
+In the same way we modified the field vector components of $\mathbf{\mathit{H}}$. Let us take the $H_x$ as an example, now the first equation in \eqref{ch2 eq:3dmaxwellH} is:
+
+\begin{equation}\label{ch2 eq:hx discrete simple}
+\begin{split}
+H^{n+\frac{1}{2}}_{x}\left( i,j+\frac{1}{2},k+\frac{1}{2} \right)=&H^{n-\frac{1}{2}}_{x}\left( i,j+\frac{1}{2},k+\frac{1}{2} \right)+\frac{\Delta t}{\mu}\\
+{}&\cdot\left[
+\frac{
+	E^n_y\left(i,j+\frac{1}{2},k+1\right)-E^n_y\left(i,j+\frac{1}{2},k\right)
+	}{\Delta z}\right.\\
+{}&+\left.
+\frac{
+	E^n_z\left(i,j,k+\frac{1}{2}\right)-E^n_z\left(i,j+1,k+\frac{1}{2}\right)
+}{\Delta z}
+\right]
+\end{split}
+\end{equation}
+All other field vector components can be processed in the exactly same way we stated above. Therefore, we obtain each field vector component's discrete form updating formulation.
+
+\section{Courant Condition}
+According to the last section, we know that instead of a set of continuous partial differential equations, FDTD solving a set of discretized Maxwell's equations. So, like other numerical approximate methods, FDTD has a necessary condition for convergence while solving partial differential equations numerically. As a consequence, the time step must be less than a certain time.
+
+At first, we consider the time step, $\Delta t$. As any field can be deposited into several harmonic electromagnetic fields, we examine the limitation of $\Delta t$ in harmonic electromagnetic field.
+
+Here is a harmonic electromagnetic field:
+\begin{equation}\label{stability: shi xie chang}
+u(x,y,z,t)=u_0exp(j\omega t).
+\end{equation}
+The first-order partial differential equation of \eqref{shi xie chang} respect to time is：
+\begin{equation}\label{stability: u partial t}
+\frac{\partial u}{\partial t}=j\omega u.
+\end{equation}
+
+By using central difference approximations to the left side of equation \eqref{stability: u partial t}, we obtain:
+\begin{equation}\label{stability: chafen}
+\frac{u^{n+\frac{1}{2}}-u^{n-\frac{1}{2}}}{\Delta t}=j\omega u^n,
+\end{equation}
+In which $u_n=u(x,y,z,n\Delta t)$.
+
+Let the growth factor $q$ be:
+\begin{equation}\label{stability: q}
+	q=\frac{u^{n+\frac{1}{2}}}{u^n}=\frac{u^n}{u^{n-\frac{1}{2}}}.
+\end{equation}
+
+Then, combining the equation \eqref{stability: q} and \eqref{stability: chafen}, we obtain this equation:
+\begin{equation}
+q^2-j\omega \Delta tq-1=0
+\end{equation}\label{ch2 eq:temp eq}
+
+Solving the equation \eqref{ch2 eq:temp eq}, we will have:
+\begin{equation}
+q=\frac{j\omega \Delta t}{2}\pm\sqrt{1-\left(\frac{\omega \Delta  t}{2}\right)^2}.
+\end{equation}
+
+If we want the value of fields converge along the marching of time, the condition $|q|\leqslant 1$ must be satisfied. Hence, there is
+\begin{equation}\label{ch2 eq:stability: dt}
+\frac{\omega \Delta t}{2}\leqslant 1.
+\end{equation}
+
+Equation \eqref{ch2 eq:stability: dt} is the necessary condition of $\Delta t$ required by a field which need to be stable.
+
+For Maxwell's equations, which have six field components, we know that all rectangular components of electromagnetic field fit in the homogeneous wave equation which is following:
+\begin{equation}\label{stability: qicibodong}
+\frac{\partial^2 f}{\partial x^2}+\frac{\partial^2 f}{\partial y^2}+\frac{\partial^2 f}{\partial z^2}+\frac{\omega^2}{c^2}f=0.
+\end{equation}
+
+As any wave can be expanded to plain waves, so we consider the solution of plain waves of homogeneous wave equation:
+\begin{equation}\label{stability: pingmianbo}
+u(x,y,z,t)=u_0 exp[-j(k_x x+k_y y+k_z z-\omega t)].
+\end{equation}
+
+Substituting the equation \eqref{stability: pingmianbo} into \eqref{stability: qicibodong}, and discretize the result by using central difference, then we obtain the following equations:
+\begin{equation}\label{stability: qicibodong lisan}
+\frac{\sin^2 \left( \frac{k_x\Delta x}{2} \right)}{\left(\frac{\Delta x}{2}\right)^2}+
+\frac{\sin^2 \left( \frac{k_y\Delta y}{2} \right)}{\left(\frac{\Delta y}{2}\right)^2}+
+\frac{\sin^2 \left( \frac{k_z\Delta z}{2} \right)}{\left(\frac{\Delta z}{2}\right)^2}-
+\frac{\omega^2}{c^2}=0.
+\end{equation}
+The $c$ is the speed of light in media among it.
+
+Simplify the equation \eqref{stability: qicibodong lisan} and substitute it into \eqref{ch2 eq:stability: dt}. Then we obtain
+\begin{equation}
+\left(\frac{c\Delta t}{2}\right)^2
+\left[
+\frac{\sin^2 \left( \frac{k_x\Delta x}{2} \right)}{\left(\frac{\Delta x}{2}\right)^2}+
+\frac{\sin^2 \left( \frac{k_y\Delta y}{2} \right)}{\left(\frac{\Delta y}{2}\right)^2}+
+\frac{\sin^2 \left( \frac{k_z\Delta z}{2} \right)}{\left(\frac{\Delta z}{2}\right)^2}
+\right]=
+\left(\frac{\omega\Delta t}{2}\right)^2\leqslant 1.
+\end{equation}
+This equation is true under the following condition:
+\begin{equation}\label{stability: courant}
+c\Delta t\leqslant
+\frac{1}{
+	\sqrt{\frac{1}{(\Delta x)^2}\frac{1}{(\Delta y)^2}+\frac{1}{(\Delta z)^2}}
+	}.
+\end{equation}
+The equation \eqref{stability: courant} give out the relationship between time step $\Delta t$ and space step $\Delta x$, which called courant condition.
+
+\section{The limitation of $\Delta x$}
+In the last section, the relationship between the time step and the space step was been determined. Taking the 1D situation as an instance, from the equation \eqref{stability: qicibodong lisan} we have:
+\begin{equation}
+\frac{\sin^2 \left( \frac{k_x\Delta x}{2} \right)}{\left(\frac{\Delta x}{2}\right)^2}-
+\frac{\omega^2}{c^2}=0.
+\end{equation}\label{ch2 eq:dispersion}
+
+We can observe the fact from the equation \eqref{ch2 eq:dispersion} that the dispersion can be avoided only if $\Delta x\rightarrow 0$. So, we need to evaluate to what extent the $\Delta x$ can be treated as closed to 0 in numerical approximation. According to triangle functions, when $\phi\leqslant \pi/12$, $sin\phi\approx\phi$. So, there has
+\begin{equation}\label{stability: space}
+	\Delta x\leqslant \frac{2\pi}{12k}=\frac{\lambda}{12}.
+\end{equation}
+
+Equation \eqref{stability: space} is the requirement for space step $\Delta x$. For circumstances of 2D or 3D, they are the same as 1D situation, just make space steps of each dimension meet the condition \eqref{stability: space}. To signals whose band are wide and belong to non-homogeneous waves, make sure the space step meet the requirement \eqref{stability: space} of the shortest wave length.
+
+
+\section{Boundary conditions of FDTD}
+In theory, by following the rules of FDTD we can simulate almost every electromagnetic wave in the infinite space and the length of time is infinite, too. However, as the power of computation is limited, and problems are always have significant big size, we can, and should simulate the the waves in the target area we concerned even in fact those waves are propagating in the infinite space. One possible way to do that is to design boundary conditions properly. Given a problem, we can compute discrete field points which are in the target area to observe how the wave changes in the whole area. There are two kinds of boundary conditions, absorbing boundary conditions (ABC) and truncating boundary conditions (TBC). In reality, people always adopt ABC, which allow them simulate the situation a wave propagating in the infinite space. Among ABCs, Mur and perfectly matched layer (PML) are two main boundary conditions.
+
+\section{The ways of parallel computing of FDTD}
+
+To satisfy the Courant condition, the grids of Yee cell must be fine enough, which means the number of discrete field points we need to compute will be significantly massive, therefore, solving a real problem in a big size seems not practical. Parallel computing, as to this problem, is a quite efficient solution.
+
+There are three level of parallelism. The top level is task level. In this level, a huge task need to be completed is divided into several independent smaller tasks. After those smaller tasks computed by some computing cores, we merge the solutions of those smaller tasks into a integral solution, which answers the original task. According to the parallelism nature of FDTD, that all computing cores need exchange some boundary data with its adjacent computing cores, FDTD is suitable to be computed in parallel computing. So far, we have massage passing interface (MPI) method and parallel virtual machine (PVM) method of this parallelism level.
+
+The lower level of parallelism is instruction level parallelism. This level of parallelism always considered by CPU manufacturers, hardly by users.
+
+The lowest level of parallelism if data level. In this level, several data can be evaluated by one instruction simultaneously if a task have been reorganized appropriately. In FDTD, as all discrete field points of the same field vector component have a shared updating formulation, we can compute several discrete field points by every single instruction when those points belong to the same field vector component. For parallelism in this level, there are some implementations of FDTD by using vector processor instruction sets.
+
+\section{Conclusion}
+In this chapter, de discussed several aspects of FDTD. First, we introduce the theories of FDTD algorithm. Then we describe the updating formulations for every field vector components, which are the key of FDTD. After that, the necessary condition, Courant condition was stated. Satisfying this condition make sure all field vector components keep stable and being convergent, which make FDTD useful in reality. Then we discussed the boundary conditions of FDTD, which influence the accuracy of FDTD. Finally, we introduced several ways of parallel computing to make FDTD faster. All things we discussed above in this chapter are the foundations of the works in this paper.
