@@ -1,25 +1,27 @@
 % !Mode:: "TeX:UTF-8"
 
-\chapter{使用图形处理器对FDTD加速}
+\chapter{Accelerating FDTD by Using CUDA}
 
-在本章中，我们以二维TM波为例来展示使用图像处理器的加速方案。
+In this chapter, we use the simulation of 2D TM mode as an instance to explain the scheme of accelerating FDTD by using CUDA.
 
-\section{图形处理器与CUDA}
+\section{GPU and CUDA}
 
-图形处理单元（Graphic Processing Unit，GPU，以下简称为GPU），是一种专门运行绘图运算工作的微处理器，于1999年8月被 NVIDIA 公司提出，自此作为一个独立的运算单元。早期的 GPU 是随着图形界面操作系统的的普及而得到推广。这是 GPU 提供基于硬件的位图运算功能。同一时期，在专业计算领域，Silicon Graphics 公司一直致力于推动3D图形的应用，并于1992年发布了 OpenGL 库，试图将其作为一种与平台无关的标准化3D 图形应用程序编写方法。
+GPU, is a specialized microprocessor designed to process images rapidly with hundreds of cores and independent memory. The term GPU was popularized by NVIDIA corporation in 1999. GPU was spread with the population of graphic operation systems.
 
-2001年，NVIDAI 公司开发了 GeForce3，它拥有可编程功能，同时支持\linebreak[4] OpenGL 和 DirectX8，宣告了 GPU 并行计算的开始，是 GPU 技术上最重要的突破。开发人员也是从此时开始第一次可以对 GPU 中的计算机型一定程度上的控制。因为GPU的主要目标是通过可编程计算单元为屏幕上的每个像素计算出一个颜色值，虽然通常这些计算单元得到的信息是图像的位置、颜色等等，但是实际上是可控的，这吸引了许多人员来探索在图形渲染之外的领域中利用GPU。此时的的GPU计算使用起来非常复杂。标准图形接口，例如 OpenGL 和 DirectX 是和 GPU 交互的唯一方式，因此使用 GPU 就不得不利用图形 API 的编程模型。这样一来，人们只能按照图形计算的方式，将其它任务按照图形渲染任务的形式输入 GPU，然后得到 GPU 返回的图像格式的结果。这种方法可行，并且极大地提升了计算任务的完成效率，但是太过复杂，需要人们掌握图形相关的知识，对研究人员负担过重，并有很大局限。例如对写入内存的限制，以及无法控制是否能处理浮点数，在程序出现问题的时候也没有办法进行调试。
+In the early time, for RAM was very expensive, the graphic chips composited data together. Till 80s, the Commondore Amiga featured a custom graphic chip which can manipulate 16-color bitmaps. In 1986, the TMS34010 was released by Texas Instruments, which is the first microprocessor could run general purpose code by using a very graphics-oriented instruction set. OpenGL is a professional graphic application programming interfae (API) appeared in the early 90s, which tried to be a standard cross-language, cross-platform API to rendering 2D and 3D vector graphics. In 2001, the NVIDIA developed the first consumer-level GPU, GeForce 256, which is programmable and supporting OpenGL and DirectX8. In 2006, NVIDIA released CUDA. Against previous API like Direct3D and OpenGL which required advanced skills in graphics programming and advanced understanding of the hardware' architecture, it is designed to work with programming language such as C, C++, and Fortran, which allow people utilize GPU's computation power easier without requiring so much. 
 
-2006年，NVIDIA 发布了 GeForece8800GTX，是具有里程碑意义的一步。从这里开始，GPU 第一次设计了适合于通用计算的架构，包括包括了线程通信机制、多级分层存储器结构以及符合 IEEE 标准的单精度浮点运算和逻辑运算的结构，使其拥有了强大的并行处理能力。
+In 2006, NVIDIA released GeForce8800 GTX, which is a milestone of the development of general purpose GPU (GPGPU). From that time, GPU began to have the architecture which suitable to execute general purpose computations, and including several new components like shared memory, multithreading communications which give it the powerful capability of parallel computing.
 
-2007年6月，统一设备计算架构（Compute Unified Device Architecture，CUDA。以下简称为 CUDA）正式开始发布，这引起了 GPU 通用计算的革命。CUDA 统一了之前 GPU 中的计算资源，使得执行通用计算的程序能够对芯片上的每个数学逻辑单元进行排列，并且这些逻辑单元都满足 IEEE 单精度浮点数学运算要求。此外，还可以任意的读/写内存，以及访问共享内存。在使用方面，CUDA 采用了工业标准 C 语言，只增加了一部分关键字来支持 CUDA 的特殊功能。大大减轻了使用者的学习负担。
+In 2007, CUDA was unveiled by NVIDIA. Unlike precious generations that partitioned computing resources into vertex and pixel shaders, the CUDA included a unified shader pipeline, which allowing wach and every arithmetic logic unit (ALU) on the chip to be marshaled by a program intending to perform general-purpose computations. Besides, those ALUs were built to comply with IEEE requirements for single-precision floating-point arithmetic and were designed to use an instruction set tailored for general computation rather than specifically for graphics. Furthermore, the execution units on CUDA were allowed arbitrary read and write access to memory as well as access to a sofeware-managed cache known as shared memory. To make the using of GPU more easier, NVIDIA took standard C added a small number of keywords to use GPU. Hence, users are no longer required to have any knowledge of the OpenGL or Direct3D, nor the knowledge to transform their tasks to look like a computer graphics task in order to be executed by GPU.
 
 
-\section{使用图形处理器加速的原理}
+\section{The Theory of Accelerating FDTD with CUDA}
 
-\subsection{CUDA编程模型}
+\subsection{The Programming Model of CUDA}
 
-在使用 GPU 的时候，由于所用的 GPU 是外接设备，所以 GPU 和内存和 CPU 是相互独立的。习惯上我们称 CPU 为 host，GPU 为 device。Host端的代码主要负责执行串行部分，主要是负责整个计算的流程的调控。Device 端的代码负责具体计算。在运行时，我们是在 CPU 中开始运行程序，在需要 GPU 的运算时，在程序中声明一个 kernel，来调用 GPU 进行计算。计算开始时，由于内存系统是相互独立的，所以我们将数据传输到 GPU 中进行计算，计算后再传输回 CPU 继续进行程序的运行。整个过程如图\ref{ch4:cudacallmodel}所示。
+As GPU is an independent device, so the system of GPU is independent to the system of CPU. Generally, we refer to the CPU and the system's memory as the \textit{host}, and refer to the GPU and its memory as the \textit{device}. The code on host mainly control the work flow of a program, and the code on device often focus on the tasks involving massive computation. 
+
+CUDA allows the programmer to define C functions called \textit{kernels}, which when called, are executed N times in parallel by N different CUDA threads, against only once like regular C functions. When a CUDA program is being executed, kernels are called to use GPU to compute, that is, at first transferring data to GPU, and transferring the result of computing those data back after the tasks are completed. The process is illustrated in Fig. \ref{ch4:cudacallmodel}.
 
 \begin{figure}[hp]
 	\centering
@@ -37,15 +39,15 @@
 	\draw [dashed] (3,1) -- (3,-9);
 	\node (cpu) [above,yshift=-\yshift] {host};
 	\node (gpu) [right of=cpu, xshift = \xshift] {device};
-	\node (start) [startstop] {开始};
-	\node (host alloc) [process, below of=start,yshift=\yshift] {在 host 中进行内存分配};
-	\node (host init) [process, below of=host alloc,yshift=\yshift] {在 host 中进行初始化};
-	\node (device alloc) [process, right of=host init, xshift=\xshift,yshift=2*\yshift] {在 device 中进行内存分配};
-	\node (k1) [process, below of=host init, yshift=3*\yshift] {调用内核1}; 
-	\node (kf1) [process, right of=k1, xshift=\xshift] {进行计算};
-	\node (k2) [process, below of=k1, yshift=\yshift] {调用内核2};
-	\node (kf2) [process, right of=k2, xshift=\xshift] {进行计算};
-	\node (stop) [startstop, below of=k2,yshift=\yshift] {结束};
+	\node (start) [startstop] {Start};
+	\node (host alloc) [process, below of=start,yshift=\yshift] {Allocate memory on host};
+	\node (host init) [process, below of=host alloc,yshift=\yshift] {Initialize on host};
+	\node (device alloc) [process, right of=host init, xshift=\xshift,yshift=2*\yshift] {Allocate memory on device};
+	\node (k1) [process, below of=host init, yshift=3*\yshift] {Call kernel 1}; 
+	\node (kf1) [process, right of=k1, xshift=\xshift] {parallel computing};
+	\node (k2) [process, below of=k1, yshift=\yshift] {Call kernel 2};
+	\node (kf2) [process, right of=k2, xshift=\xshift] {parallel computing};
+	\node (stop) [startstop, below of=k2,yshift=\yshift] {Stop};
 	
 	%arrow
 	\draw [arrow] (start) -- (host alloc);
@@ -58,11 +60,11 @@
 	\draw [arrow] (kf2) -- ++(0,1.5*\yshift) -- ++(-6,0) -- (stop);
 	
 	\end{tikzpicture}
-	\caption{使用 CUDA 计算流程}
+	\caption{The process of a CUDA program}
 	\label{ch4:cudacallmodel}
 \end{figure}
 
-接下来我用将用一个如下所示的矢量求和代码来简要介绍CUDA编程模型：
+In the following, we will introduce the CUDA programming model by a demonstration to show how to accelerating FDTD with CUDA. In the following code, we write a function which intend to add two vectors.
 
 \begin{lstlisting}
 #include "cuda_runtime.h"
@@ -113,13 +115,13 @@ int main()
 }
 \end{lstlisting}
 
-我们看到，首先我们需要使用修饰符 \_\_global\_\_ 来表明接下来的函数是一个 kernel，意味着该函数将在 device 上被执行，且该函数可以被 host 以及 device 上的函数所调用。在 host 中调用 kernel 需要以尖括号的形式通知 device 使用什么方式运行 kernel。尖括号中第一个参数是表示设备在执行核函数时使用的并行线程块的数量，第二个参数表示每个线程块中启动的线程数目。在使用 kernel 之前，我们需要调用 cudaMalloc() 在 device 上为三个数组分配内存，在使用完之后使用 cudaFree() 释放内存。之前我们提到 device 和 host 的内存是相互独立的，因此我们在计算前需要在 host 中设置好数据的初始化，将数据使用 cudaMemcpy() 输入到设备当中，在 device 完成计算之后同样使用该函数将计算结果传递回 host。
+At first, we define a kernel by using the declaration specifier \lstinline|__global__|, and execution configuration syntax \lstinline|<<<...>>>|, which specify the number of CUDA threads that execute the kernel. Each thread the executes the kernel has a unique thread ID through the built-in \lstinline|threadIdx| variable which can be accessible within the kernel. Before calling a kernel, we should allocate memory on device first for three arrays. Correspondingly, we should free the memory allocated when they are no longer needed. Besides, as we mentioned before, the memories of device and host are independent, so we need transfer the data waited to be manipulated to kernel before calling it and transfer the computing result after the kernel being called.
 
-\subsection{线程}
+\subsection{Thread Hierarchy}
 
-并行运算的基本单位单位是线程。在 GPU 中，线程有三个层次。最底层的是线程，由线程构建出线程块，多个线程块又组成线程格。一个线程格对应一个 Kernel。目前的设备中，一般可以调用最多65536个线程块，每个线程块可以调用最多512个或1024个线程，线程块内的线程可以共享内存，快速交换数据。在这里的示例中，作为 kernel 的 add() 函数调用了128个线程块，每个线程块使用了128线程。这时我们可理解为，运行时 device 将会创建函数 add() 的128$\times$128个副本，并以并行的方式同时计算每个副本。
+The basic unit of parallel computing is thread. As mentioned above, thread had its own \lstinline|threadIdx|, a 3-component vector. So, we can identify thread by using a one-dimensional, two-dimensional, or three-dimensional thread index, to from a one-dimensional, two-dimensional, ot three-dimensional block of threads, called a thread block. The threads in the same thread block can share memory and communicate with each other rapidly. The number of block and threads per block has is defined by arguments in \lstinline|<<<...>>>|. The first argument in the chevrons specify the number of thread blocks, and the second argument specify the number of threads per thread block has. In the sample code above, the host code in line 36 invoke 128 thread blocks with 128 threads per thread block. The GPU will create a copy of function \lstinline|add()| for each thread and process them in a parallel way.
 
-在示例代码的第7行，我们看到有变量\lstinline|threadIdx.x|、\lstinline|blockId.x|和\lstinline| blockDim.x|。这些变量都是 CUDA 的内置变量，分别代表每个线程的编号、每个线程格的编号和线程格中每一维的线程数量。这些变量在运行时已经预先定义，变量中包含的值就是当前执行 device 代码的线程索引。对于每一个线程或者线程格而言编号都是不同的，对于线程格而言，每一维的线程数量是固定的。线程格最高支持三个维度，下图\ref{ch4:grid and thread}展示了二维线程块和线程的关系作为示例。
+In the line 7 of the sample code, there are some built-in variables, which is \lstinline|threadIdx.x|, \lstinline|blockId.x|, and \lstinline| blockDim.x|. For those built-in variables, there is no need to define it or assign a value to it. It contains the value of the index or the size for a thread or block. For a two-dimensional block of size $(D_x, D_y)$, the thread ID of a thread of index $(x,y)$ is $(x+yD_x)$; for a three-dimensional block of size $(D_x,D_y,D_z)$, the thread ID of a thread of index $(x,y,z)$ is $(x+yD_x+zD_x D_y)$. In the Fig. \ref{ch4:grid and thread}, we illustrate the relationship between a two-dimensional block with threads it has.
 
 \begin{figure}[hp]
 	\centering
@@ -127,7 +129,7 @@ int main()
 	\def \len {2}
 	\def \hl {1}
 	
-	\node at (-\hl,\len) {线程格};
+	\node at (-\hl,\len) {Thread block};
 	%1
 	\draw[fill=cyan](0,0) rectangle +(\len,\len); \node at ($0.5*(\len,\len)$) {$(0,0)$};
 	\draw($(\len,0)$) rectangle +(\len,\len);\node at ($(\len,0)+0.5*(\len,\len)$) { $(0,1)$};
@@ -164,45 +166,47 @@ int main()
 	\draw [dashed] (\len,\len) -- +($(1.5*\len,3*\len)$);
 	
 	\end{tikzpicture}
-	\caption{线程格和线程的二维层次结构示意图}
+	\caption{The relation between a two-dimensional thread block and threads it has}
 	\label{ch4:grid and thread}
 \end{figure}
 
-根据这个关系，我们可以计算出利用这种关系得出一组唯一的索引，即如示例代码中第7行所示\lstinline|tid=threadIdx.x + blockId.x * blockDim.x|。利用这个索引我们可以对数组中的元素进行一次的不重复的计算，当一个线程完成对当前元素的计算的时候，将当前索引加上全部线程数目，如示例代码的第9行所示，进行对下一批的元素的计算。这样就完成了对任意数量的数据的计算。
+After all threads finished their copy of kernel, we add the theirs index with the number of all threads in all blocks, like what line 10 doing in the sample code. By doing this, we can compute vectors in arbitrary size with finite number of threads and blocks.
 
-\section{FDTD的CUDA加速方案}
+\section{The Scheme of Accelerating FDTD with CUDA}
 
-针对使用 CUDA 对 FDTD 加速的问题，我们采取的策略为以一维线程格作为 Yee 网格排布中的行，以每个内存格中的一维线程作为 Yee 网格排布中的列。在使用该策略进行计算之前，我们需要对其它部分进行优化，以便提高效率。
+Before we consider the scheme of kernels, we think some optimizations for auxiliary work.
 
-首先是传输优化。为了对某个数据集进行操作，如前文所说需要在 CPU 中对数据集进行初始化，然后将数据从 host 传输到 device 中，然后在对数据进行操作之后传输回 host。这种做法将带来两个问题。
+First, we consider the transfer step. As mentioned above, before calling a kernel, we need transfer the data which need to be manipulated to device, and transfer the result back to host. This process will bring us some inconveniences.
 
-第一是由于传输过程是在完全串行的方式进行的，因此传输效率较低，尤其考虑到使用 GPU 加速的时候往往是要对一个较为巨大的数据集进行处理，因此将会有较长一段时间内 host 和 device 的内存都是闲置的，是对计算资源的浪费。第二个问题是 I/O 硬件吞吐量。对绝大多数程序而言，这是无法加速的限制。
+The transfer step is accomplished in a serial way, which is inefficient, especially considering that almost all kernel need to handle massive data and the limitation of the I/O capability of hardwares, thus the CPU and GPU will have a long time with nothing meaningful to do, wasting their power of computation. 
 
-针对这个问题，我们采取的措施是取消从 host 传输数据到 device 的步骤，转而在 device 上分配内存的时候直接初始化各个数据为0。这样一来，减少了一半数据传输的时间。
+For this problem, we adopt a measure that instead of transfer data from host to device, we initialize data on device directly after allocating memory on it. By doing this, half time of transferring data is saved.
 
-其次是内存优化。由于我们是以二维的 TM 波作为示例，因此各个场分量的节点将以二维形式进行排布。在此时我们采用 \lstinline|cudaMallocPitch|取代\lstinline|cudaMalloc|进行对 device 上变量的内存分配。在第二章中我们已经提到了内存对齐的问题，当内存不对齐的时候处理器读取地址的操作往往要耗费三倍的时间。当内存对齐之后，相比不对齐性能提高最大有50\%。相对应的，我们使用\lstinline|cudaMemcpy2D|取代\lstinline|cudaMemcpy|将数据集传输回 host。
+Second, we consider the memory of device. Considering we need to have a 2D arrays' allocations, we performing pitch allocations using \lstinline|cudaMallocPitch| instead of \lstinline|cudaMalloc|. The alignment in memory had been mentioned in the chapter 2 that if the allocations are not aligned much time would be wasted on accessing memory and loading data. The \lstinline|cudaMallocPitch| ensure that the starting address of each row in a 2D array is a multiple of $2^N$, where $N$ is 7\~10. In the worst condition, the time can be 1.5 times of not aligned condition compared to the aligned condition. For the same reason, we use \lstinline|cudaMemcpy2D| instead of \lstinline|cudaMemcpy| to get the result back from device to host.
 
-在上述优化的条件下，我们规划了具体的对 FDTD 加速的方案。程序整体架构如图\ref{ch4:prog consitit}所示。程序分为两大部分，一部分是类，一部分是操作函数。我们定义了三个类。类 E 中包含了电场分量的信息，以及对电场分量的初始化、检查信息和写入文件的几个方法。类 H 和类 E 相似，针对 $H_x$ 和 $H_y$ 两个场分量做了同样的规定。类 src 针对激励源包含了激励源以及仿真环境的信息，以及随时间激励源变化的方法。操作函数负责仿真的核心计算，可以分为电场分量的计算、磁场分量的计算以及对边界条件的处理三个部分。
+Together with the optimizations mentioned above, we draw the framework of FDTD program, which shown in Fig. \ref{ch4:prog consitit}. There are two parts of the CUDA program, one part is classes, and another is functions. In the classed part, three classed are defined. The members of class \lstinline|E| include the information of electric field, and some method like initialization, checking, and saving the data of electric field in files. The class \lstinline|H|, like class, define the same thing to the $H_x$ and $H_y$ field components. The class \lstinline|src|, on the other hand, specify the information and methods of the whole simulation area, including the excitation source, the scale of Yee cells, the number of time steps, etc.
+
+The function part, also the key part of the program, is responsible to the process of updating values of each discrete field point, including the updating of magnetic field points, the updating of electric field point, and the process of boundary condition in each tiem step.
 
 \begin{figure}[hp]
 	\centering
 	\begin{tikzpicture}
 		\tikzstyle{box} = [rectangle, rounded corners, minimum width = 1cm, minimum height=1cm,text centered, draw=black,align=center]
 		\tikzstyle{arrow} = [thick,->,>=stealth]
-		\def \xshift {3.25cm}
+		\def \xshift {3cm}
 		\def \yshift {-1cm}
 		
-		\node (whole) [box] {程序整体};
-		\node (class) [box, below of=whole,xshift = -\xshift, yshift=\yshift] {类};
-		\node (func) [box, below of =whole, xshift = \xshift, yshift=\yshift] {操作函数};
+		\node (whole) [box] {The whole program};
+		\node (class) [box, below of=whole,xshift = -1.3*\xshift, yshift=\yshift] {Classes};
+		\node (func) [box, below of =whole, xshift = 0.9*\xshift, yshift=2.3*\yshift] {Functions};
 		%class
-		\node (src) [box, below of=class, yshift=\yshift] {仿真区\\域类\lstinline|src|};
-		\node (E) [box, left of=src, xshift=-0.4*\xshift] {电场\lstinline|E|};
-		\node (H) [box, right of=src, xshift=0.4*\xshift] {磁场类\lstinline|H|};
+		\node (src) [box, below of=class, yshift=\yshift] {Class \lstinline|src|};
+		\node (E) [box, left of=src, xshift=-0.3*\xshift] {Class \lstinline|E|};
+		\node (H) [box, right of=src, xshift=0.3*\xshift] {Class \lstinline|H|};
 		%function
-		\node (cmpsrc) [box, below of=func,yshift = \yshift] {计算\\激励源};
-		\node (cmph) [box, right of=cmpsrc, xshift=0.3*\xshift] {计算\\磁场节点};
-		\node (cmpe) [box, left of=cmpsrc, xshift=-0.3*\xshift] {计算\\电场节点};
+		\node (cmpsrc) [box, below of=func,yshift = \yshift] {Computing the \\excitation source};
+		\node (cmph) [box, right of=cmpsrc, xshift=0.9*\xshift] {Computing the \\magnetic field points};
+		\node (cmpe) [box, left of=cmpsrc, xshift=-0.8*\xshift] {Computing the \\eletric field points};
 		
 		\draw [arrow] (whole) -| (class);
 		\draw [arrow] (whole) -| (func);
@@ -213,11 +217,11 @@ int main()
 		\draw [arrow] (func) -- (cmph);
 		\draw [arrow] (func) -- (cmpe);
 	\end{tikzpicture}
-	\caption{使用 CUDA 加速的程序的组成架构}
+	\caption{The framework of FDTD program with using CUDA}
 	\label{ch4:prog consitit}
 \end{figure}
 
-程序的运行流程如图\ref{ch4: workflow}所示，首先对仿真环境进行初始化，然后对各个场分量进行初始化，接下来跳过传输 host 上数据到 device 的步骤直接开始计算。在计算后将数据传输回 host，写入文件。
+The work flow of the program if shown in Fig. \ref{ch4: workflow}. At the beginning we initialize the simulation area, plus the class \lstinline|E| and \lstinline|E|. Then we step into the loop of updating values of each discrete field point. After the loop the program get the result back from device and write the information of field components in files. At last, free the allocations of memory and end the program.
 
 \begin{figure}[hp]
 	\centering
@@ -232,14 +236,14 @@ int main()
 		\def \yshift {-1cm}
 		\def \xshift {5cm}
 		
-		\node (start) [startstop] {开始};
-		\node (init) [io, below of=start, yshift=\yshift] {对场分量节点及仿真\\环境进行初始化};
-		\node (fdtdarea) [process,below of=init,yshift=\yshift] {对场分量节点进行计算};
-		\node (bd) [process,below of=fdtdarea,yshift=\yshift] {对Mur吸收边界条件进行计算};
-		\node (trans) [process, below of = bd, yshift=\yshift] {传输计算所得结果回 host};
-		\node (save) [io, below of =trans, yshift=\yshift] {保存当前时刻场分量数值};
-		\node (judge) [decision,below of=save,yshift=1.5*\yshift] {时间迭代是否结束};
-		\node (stop) [startstop,below of=judge,yshift=1.5*\yshift] {结束};
+		\node (start) [startstop] {Start};
+		\node (init) [io, below of=start, yshift=\yshift] {Initializing the field points\\and simulation area};
+		\node (fdtdarea) [process,below of=init,yshift=\yshift] {Updating the values of field points};
+		\node (bd) [process,below of=fdtdarea,yshift=\yshift] {Processing Mur ABC};
+		\node (trans) [process, below of = bd, yshift=\yshift] {Getting the result back from device to host};
+		\node (save) [io, below of =trans, yshift=\yshift] {Saving the values\\of field components};
+		\node (judge) [decision,below of=save,yshift=2*\yshift] {Judging if the loop finished};
+		\node (stop) [startstop,below of=judge,yshift=1.5*\yshift] {Stop};
 		
 		\draw [arrow] (start)--(init);
 		\draw [arrow] (init)--(fdtdarea);
@@ -247,15 +251,16 @@ int main()
 		\draw [arrow] (bd)--(trans);
 		\draw [arrow] (trans)--(save);
 		\draw [arrow] (save)--(judge);
-		\draw [arrow] (judge)--node[anchor=east] {是} (stop);
-		\draw [arrow] (judge) --node[anchor=south] {否} ++(\xshift,0) |- (fdtdarea);
+		\draw [arrow] (judge)--node[anchor=east] {Yes} (stop);
+		\draw [arrow] (judge) --node[anchor=south] {No} ++(\xshift,0) |- (fdtdarea);
 		
 	\end{tikzpicture}
-	\caption{使用 CUDA 加速的 FDTD 程序流程图}
+	\caption{The work flow of program}
 	\label{ch4: workflow}
 \end{figure}
 
-在计算过程中，我们采取前文 CUDA 编程模型范例中的并行方法，使用每个线程计算每个场分量节点。以对电场节点的计算函数为例，核心代码如下：
+In the process of updating values, we adopt a way following the programming model discussed above. Taking the code of updating process of $E_z$ shown in the following as an example:
+
 \begin{lstlisting}
 __global__
 void Ez_cmp_kernel(
@@ -283,30 +288,31 @@ int ele_ex, int ele_hx, int ele_hy
 }
 \end{lstlisting}
 
-\section{使用CUDA加速后性能提升情况}
+\section{The performance of FDTD with CUDA}
 
-此处同样使用二维 TM 波 FDTD 的 Mur 吸收边界条件为例来比较使用 CUDA 加速和不使用任何加速、使用 CUDA 加速和使用矢量处理器加速以及不同时间或空间规模下的 CUDA 加速情况对比。
+Here, we also take the computation of 2D FDTD TM wave using Mur ABC as an example to analyze the difference of performance between FDTD without data parallelism, the modified method with VP, and FDTD with CUDA in different space and time sizes. Furthermore, we analyze the efficiency of those two methods based on those results.
 
-程序的框架以调用树的如图\ref{ch4:call tree}所示。在分析时，我们采用和第三章第四节中的分析方法。下面各表展示了不同样本下的性能对比结果。
+The call tree view of program is as what Fig. \ref{ch4:call tree} showing. We also adopt the profiling methods used in chapter 3. The following tables present the profiling reports.
 
 \begin{figure}[hp]
 	\centering
+	\vspace{3.118mm}%
 	\begin{tikzpicture}
 		\tikzstyle{box} = [rectangle, rounded corners, minimum width = 1cm, minimum height=1cm,text centered, draw=black,align=center]
 		\tikzstyle{arrow} = [thick,->,>=stealth]
-		\def \xshift {2.5cm}
+		\def \xshift {4cm}
 		\def \yshift {-1cm}
 		
 		\node (main) [box] {\lstinline|main|};
-		\node (keycmp) [box,right of=main,yshift=-\yshift,xshift=\xshift] {核心计算函数};
-		\node (mincmp) [box,right of=main,yshift=2*\yshift,xshift=\xshift] {其余计算函数};
-		\node (init) [box,above of=keycmp,yshift=-2.7*\yshift] {初始化函数};
-		\node (otherfunc) [box,below of=mincmp,yshift=\yshift] {其余函数};
+		\node (keycmp) [box,right of=main,yshift=-\yshift,xshift=\xshift] {Key computing functions};
+		\node (mincmp) [box,right of=main,yshift=2.1*\yshift,xshift=\xshift] {Other computing functions};
+		\node (init) [box,above of=keycmp,yshift=-2.7*\yshift] {Initialization functions};
+		\node (otherfunc) [box,below of=mincmp,yshift=1.1\yshift] {Other functions};
 		
 		\draw [arrow] (main) --++(0.5*\xshift,0)-- +(0,-4.7*\yshift)--(init);
 		\draw [arrow] (main) --++(0.5*\xshift,0)-- +(0,-1*\yshift)--(keycmp);
-		\draw [arrow] (main) --++(0.5*\xshift,0)-- +(0,2*\yshift)--(mincmp);
-		\draw [arrow] (main) --++(0.5*\xshift,0)-- +(0,4*\yshift)--(otherfunc);
+		\draw [arrow] (main) --++(0.5*\xshift,0)-- +(0,2.1*\yshift)--(mincmp);
+		\draw [arrow] (main) --++(0.5*\xshift,0)-- +(0,4.1*\yshift)--(otherfunc);
 		
 		\node (src) [box,right of=init,xshift=\xshift] {\lstinline|src::src|};
 		\node (Hxy) [box,above of=src,yshift=-0.2*\yshift] {\lstinline|Hxy::Hxy|};
@@ -323,29 +329,31 @@ int ele_ex, int ele_hx, int ele_hy
 		\draw [arrow] (keycmp) -- (hycmp);
 		\draw [arrow] (keycmp) -- (ezcmp);
 		
-		\node (bd) [box,right of=mincmp,yshift=-0.6*\yshift,xshift=\xshift] {Mur边界处理函数};
-		\node (srccmp) [box,right of=mincmp,xshift=\xshift,yshift=0.6*\yshift] {\lstinline|src_cmp_kernel|};
+		\node (bd) [box,right of=mincmp,yshift=-0.6*\yshift,xshift=\xshift] {The Mur ABC\\processing function};
+		\node (srccmp) [box,right of=mincmp,xshift=\xshift,yshift=0.7*\yshift] {\lstinline|src_cmp_kernel|};
 		\draw [arrow] (mincmp)--(bd);
 		\draw [arrow] (mincmp)--(srccmp);
 		
-		\node (other) [box,right of=otherfunc,xshift=\xshift] {其余辅助函数};
+		\node (other) [box,right of=otherfunc,xshift=\xshift] {Auxiliary functions};
 		\draw [arrow] (otherfunc) -- (other);
 		
 		
 	\end{tikzpicture}
-	\caption{CUDA 加速的 FDTD 程序调用树}
+	\vspace{3.118mm}%
+	\caption{The call tree view of program}
 	\label{ch4:call tree}
+	\vspace{2.736mm}%
 \end{figure}
 
 \begin{table}[hp]
 	\centering
 	\begin{threeparttable}
-		\caption{传统串行方案和 CUDA 加速方案性能比较}\label{ch4: cuda or not}
+		\caption{The comparison between serial way and using CUDA}\label{ch4: cuda or not}
 		\begin{tabular}{cccc}
 			\toprule
-			\multirow{2}{2em}{函数}&\multicolumn{2}{c}{已用非独占时间（ms）} & \multirow{2}{6em}{使用 CUDA 所节约时间}\\
+			\multirow{2}{2em}{Function}&\multicolumn{2}{c}{Elapsed Inclusive (ms)} & \multirow{2}{14em}{The time saved by using CUDA}\\
 			\cline{2-3}
-			& 传统串行方案 & CUDA 加速方案 & \\ 
+			& serial way & using CUDA & \\ 
 			
 			\midrule
 			$main$ & 10330.43 & 888.30 & 91.4\% \\
@@ -357,25 +365,25 @@ int ele_ex, int ele_hx, int ele_hy
 			\bottomrule
 		\end{tabular} 
 		\begin{tablenotes}
-			\item[1] 仿真空间大小为$2000\times1000$个 Yee 网格。
-			\item[2] 时间迭代次数为1000次。
-			\item[3] 仅串行方案中。
-			\item[4] 仅 CUDA 加速方案中。
+			\item[1] The size of simulation area is 2000$\times$1000 Yee cells.
+			\item[2] The number of time step is 1000.
+			\item[3] Only in serial way.
+			\item[4] Onely in the way of using CUDA.
 		\end{tablenotes}
 	\end{threeparttable}
 \end{table}
 
-表\ref{ch4: cuda or not}展示了传统串行计算和使用 CUDA 加速的的性能比较。我们可以看到，在每次对计算函数的调用中，在串行计算中计算场分量的函数（$H\_cmp$和$E\_cmp$）在计算中花费了大量时间，但是在 CUDA 加速方案中花费了不到1\%的时间就完成了计算。事实上，在 CUDA 加速方案中，在每一次时间迭代中，对于各个场分量的每一个节点都是一个个独立的线程同时计算的。所以事实上 CUDA 方案中在计算上花费的时间理论上只有传统串行方案的$1/(2000*1000)$。在性能分析报告中我们可以看到 CUDA 方案中计算函数的占用时间总共只有程序运行总时间的0.81\%。绝大部分时间都是被各个场分量的初始化所占用，总占用在90\%以上。其中对$H_x$分量分配内存的\lstinline|cudaMallocPitch|函数占用了程序运行总时间的89.3\%，还未探明原因所在。这也体现了 CUDA 加速方案的一个限制，就是由于 CUDA 是一个独立设备，所以在调用 CUDA 中会出现通信、内存方面的许多注意事项。
+The Table \ref{ch4: cuda or not} represent the performances of using serial way and using CUDA. What we can see from it is the time elapsed by computational functions, ie $H\_cmp$ and $E\_cmp$ takes significant part of the whole time in the serial way, but takes only less than 1\% of the whole time in using CUDA way. In fact, in the CUDA accelerating scheme, in each time step, for each discrete field points we use a individual thread to execute it, which means that all values of points are updated at the same time. In theory, if the number of threads in all thread blocks is $Sum_{thrd}$, the time used in computation by using CUDA is $1/Sum_{thrd}$ times of it in serial way. From the profiling report we also can see that, the time used to update values of filed points takes only 0.81\%, and almost all time were taken to allocate memory.
 
 \begin{table}[hp]
 	\centering
-	\caption{CUDA 加速方案和改进数据并行方案性能对比}\label{ch4: cuda or new}
+	\caption{The comparison between the modified data parallelism and using CUDA}\label{ch4: cuda or new}
 \begin{threeparttable}
 	\begin{tabular}{cccc}
 		\toprule
-		\multirow{2}{2em}{函数}&\multicolumn{2}{c}{已用非独占时间（ms）} & \multirow{2}{6em}{使用 CUDA 所节约时间}\\ 
+		\multirow{2}{2em}{Function}&\multicolumn{2}{c}{Elapsed Inclusive (ms)} & \multirow{2}{14em}{The time saved by using CUDA}\\ 
 		\cline{2-3}
-		& 改进数据并行方案 & CUDA 方案 & \\ 
+		& \makecell{The modified\\data parallelism} & Using CUDA & \\ 
 		
 		\midrule
 			$main$ & 4082.46 & 6203.20 & -51.9\% \\
@@ -387,23 +395,23 @@ int ele_ex, int ele_hx, int ele_hy
 		\bottomrule
 	\end{tabular}
 	\begin{tablenotes}
-		\item[1] 仿真空间大小为$1000\times1000$个Yee网格。
-		\item[2] 时间迭代次数为1000次。
-		\item[3] 仅串行方案中。
-		\item[4] 仅 CUDA 加速方案中
+		\item[1] The size of simulation area is 1000$\times$1000 Yee cells.
+		\item[2] The number of time step is 1000.
+		\item[3] Only in serial way.
+		\item[4] Onely in the way of using CUDA.
 	\end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-在表\ref{ch4: cuda or new}中展示了 CUDA 加速和数据并行加速的性能对比。通过对比我们发现 CUDA 加速方案中对于场分量节点的计算用时仍然不到数据并行方案用时的1\%。但是我们发现尽管计算时间很短，但是整个程序的运行时间很长。在 CUDA 方案中的\lstinline|main|函数所占用的6203.20ms的时间中，有5500ms的时间没有进行任何动作。目前尚不清楚是因为什么原因引起的。
+The Table \ref{ch4: cuda or new} represent the comparison between data parallelism and CUDA. From the comparison we can know that the time taken by updating values is still less than 1\%.
 
 \begin{table}[hp]
 	\centering
 	\begin{threeparttable}
-		\caption{CUDA 加速在不同仿真空间规模下的性能}\label{ch4: cuda, size}
+		\caption{The performance of CUDA under different size of simulation area}\label{ch4: cuda, size}
 		\begin{tabular}{cccc}
 			\toprule
-			\multirow{2}{2em}{函数}&\multicolumn{3}{c}{已用非独占时间（ms）}\\ 
+			\multirow{2}{2em}{Function}&\multicolumn{3}{c}{Elapsed Inclusive (ms)}\\ 
 			\cline{2-4}
 			& $1000\times1000$ & $2000\times1000$ & $3000\times1000$\\ 
 			
@@ -415,22 +423,22 @@ int ele_ex, int ele_hx, int ele_hy
 			\bottomrule
 		\end{tabular}
 		\begin{tablenotes}
-			\item[1] 时间迭代次数为1000次。
+			\item[1] The number of time step is 1000.
 		\end{tablenotes}
 	\end{threeparttable}
 \end{table}
 
-在表\ref{ch4: cuda, size}中我们可以看到，除去1000$\times$1000空间规模情况下的未知原因引起的计算缓慢之外，在其余两种空间规模的情况中因为都是采用一个线程计算一个场分量节点，因此对全部节点的计算时间非常小，理论上是等于计算单个数据的时间，和空间规模无关，在实际运行中我们无法对如此细小的时间进行测量。即使是在1000$\times$1000空间规模的情况中，我们也可以看到计算所占用时间依然非常的少，在表\ref{ch4: cuda or new}中我们已经看到，即使是数据并行，计算所需时间仍然在百倍以上。
+In Table \ref{ch4: cuda, size} we can see that even the size of simulation area increase, the time used to update values is still very short, even too short to measure it. Compared to the Table \ref{ch4: cuda or new}, it is obviously that even accelerate by VP, the execution is still slow in hundreds times compared to using CUDA.
 
 \begin{table}[hp]
 	\centering
 	\begin{threeparttable}
-		\caption{CUDA 加速在不同仿真时间规模下的性能}\label{ch4: cuda, time}
+		\caption{The performance of CUDA under different number of time steps}\label{ch4: cuda, time}
 		\begin{tabular}{ccc}
 			\toprule
-			\multirow{2}{2em}{函数}&\multicolumn{2}{c}{已用非独占时间（ms）}\\ 
+			\multirow{2}{2em}{Function}&\multicolumn{2}{c}{Elapsed Inclusive (ms)}\\ 
 			\cline{2-3}
-			& 1000次时间迭代 & 3000次时间迭代\\ 
+			& 1000 time steps & 3000 time steps\\ 
 			
 			\midrule
 			$main$ & 833.30 & 1139.94 \\ 
@@ -440,13 +448,13 @@ int ele_ex, int ele_hx, int ele_hy
 			\bottomrule
 		\end{tabular}
 		\begin{tablenotes}
-			\item[1] 空间规模是$2000\times1000$。
+			\item[1] The size of simulation area is 2000$\times$1000 Yee cells.
 		\end{tablenotes}
 	\end{threeparttable}
 \end{table}
 
-在表\ref{ch4: cuda, time}中我们可以看到，在不同时间规模下使用 CUDA 加速方案的情况下计算函数所占用时间依然极少。两个时间规模下程序仿真所占用时间的差别根据检测报告表可以看出是因为\lstinline|cudaMallocPitch|在分配$H_x$场分量时所占用的时间差别所导致。在不同的方案中，该函数所占用时间独占时间均接近程序运行总时间的90\%。NVIDIA 公司在关于该函数方面没有披露更多细节，我们暂时还无法得知为何该函数在第一次被调用时要使用如此多的时间。
+From Table \ref{ch4: cuda, time}, we can see that in different number of time iterations, the CUDA scheme can also accomplish the computational task in a very short time. From the profiling report, we can know that the differences in elapsed time between those different conditions are caused by the function \lstinline|cudaMallocPitch|, which need to allocate memory for arrays. This function, takes about 90\% time of the whole time. No more details revealed by NVIDIA corporation so far, so we do not understand the reason behind this situation.
 
-\section{结论}
+\section{Conclusion}
 
-在本节中，我们介绍了使用 CUDA 加速的原理和编程模型，探讨了如何使用 CUDA 实现对 FDTD 方案的加速。最后，我们实现了二维情况下使用 CUDA 加速 FDTD，通过对仿真程序的性能测试，我们分析了使用 CUDA 加速的性能提升，并与传统串行方案以及上一节提到的改进数据并行计算模型进行比较。我们通过程序性能数据的分析我们可以看到使用 CUDA 加速对 FDTD 性能的巨大提升。但是在某些情况下出现的尚不清楚的在计算之外的大量时间占用情况也表示在使用 CUDA 加速时需要对程序进行更谨慎的设计，因为 CUDA 作为独立设备，同时有与 CPU 不同的架构，因此我们需要针对 GPU 的情况重新对 device 部分代码进行考虑。
+In this chapter, we introduced the architecture of CUDA, and the programming model used to accelerating FDTD with using CUDA. Then we explicate our CUDA scheme, which taking the computation of 2D FDTD TM wave using Mur ABC as an example, and profiling the performance of our scheme. Furthermore, we analyze the profiling reports together the reports given in previous chapters. In the analysis, we found that the potential of CUDA is substantial. However, we also noticed that as an independent device, we need to design the CUDA code more prudentially.

@@ -32,7 +32,7 @@
     [2016/03/06 v1.2.5 UESTC thesis class]
 \LoadClass[fontset = windowsold,cs4size,UTF8,fancyhdr,hyperref,fntef,openany]{ctexbook}[2011/03/11]
 \def\CTEX@contentsname{目录}
-\def\CTEX@figurename{图}
+\def\CTEX@figurename{Figure}
 \def\CTEX@tablename{表}
 \def\CTEX@bibname{参考文献}
 \def\CTEX@appendixname{附录~}
@@ -57,10 +57,10 @@
 \newcommand{\multibibflag@uestcthesis}{}
 
 \newcommand{\thesisname@degree}{电子科技大学学士学位论文}
-
+\newcommand{\thesisname@english}{Bachelor Thesis of University of Electronic Science and Technology of China}%为bachelor选项下使用english选项而设。
 \newcommand{\chapternumberformat@uestcthesis}{\arabic{chapter}}
 \newcommand{\publicationsname@degree}{}%为bachelor选项下使用english选项而设。
-\newcommand{\thesisname@english}{}%为bachelor选项下使用english选项而设。
+%\newcommand{\thesisname@english}{}%为bachelor选项下使用english选项而设。
 }
 \newcommand{\master@uestcthesis}{
 \newcommand{\degree@uestcthesis}{master}
@@ -296,8 +296,8 @@
 \vspace{-0.582mm}%
 \raggedright%
 \sbox{\tempsubpiccaptionbox}{\parbox{\textwidth}%
-{\zihao{5}图~\thefigure~\subpiccaption}}%
-\settowidth{\tempsubpiccaptionheadindent}{\zihao{5}图~\thefigure~}%
+{\zihao{5}Figure~\thefigure~\subpiccaption}}%
+\settowidth{\tempsubpiccaptionheadindent}{\zihao{5}Figure~\thefigure~}%
 \ifthenelse{\lengthtest{\ht\tempsubpiccaptionbox > 16pt}}{%THEN
 \noindent\caption{\subpiccaption}\label{\subpiclabel}\par%
 \noindent\hspace*{\tempsubpiccaptionheadindent}%
@@ -332,8 +332,8 @@
 \vspace{-0.582mm}%
 \raggedright%
 \sbox{\tempsubpiccaptionbox}{\parbox{\textwidth}%
-{\zihao{5}图~\thefigure~\subpiccaption}}%
-\settowidth{\tempsubpiccaptionheadindent}{\zihao{5}图~\thefigure~}%
+{\zihao{5}Figure~\thefigure~\subpiccaption}}%
+\settowidth{\tempsubpiccaptionheadindent}{\zihao{5}Figure~\thefigure~}%
 \ifthenelse{\lengthtest{\ht\tempsubpiccaptionbox > 16pt}}{%THEN
 \noindent\caption[\subpiclofcaption]{\subpiccaption}\label{\subpiclabel}\par%
 \noindent\hspace*{\tempsubpiccaptionheadindent}%
@@ -1030,7 +1030,7 @@ pdfdisplaydoctitle=true
 \renewcommand{\chaptermark}[1]{\markboth{外文资料译文}{}}
 \def\leftmark{外文资料译文}
 
-\renewcommand{\CTEX@figurename}{图}
+\renewcommand{\CTEX@figurename}{Figure}
 \renewcommand{\CTEX@tablename}{表}
 
 \setcounter{chapter}{0}
