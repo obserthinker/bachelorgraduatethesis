@@ -68,7 +68,6 @@ In space, we position those discrete points like what illustrated in \ref{ch2 fi
 
 \begin{figure}[hp]
 \centering
-  \vspace{3.118mm}%
 		\begin{tikzpicture}
 		\def \len {6}
 		\def \hlen {3}
@@ -129,9 +128,7 @@ In space, we position those discrete points like what illustrated in \ref{ch2 fi
 		\node[shape=circle,fill=pink,inner sep=0pt] at ($(\hlen,\hlen)+(0,-\hlen)$) {$E_y$};
 		\node[shape=circle,fill=pink,inner sep=0pt] at ($(\hlen,\hlen)+\coe*(\hlen,\hlen)+(0,-\hlen)$) {$E_y$};
 		\end{tikzpicture}
-  \vspace{3.118mm}%
 \caption{The spatial discrete structure of Yee cell}\label{ch2 fig: yee cell}
-  \vspace{2.736mm}%
 \end{figure}
 
 We can see from the figure \ref{ch2 fig: yee cell} that in Yee cell each three components of $\mathbf{\mathit{E}}$ and $\mathbf{\mathit{H}}$ are discretized on the surface. Electric field components $\mathit{E}_x$, $\mathit{E}_y$, and $\mathit{E}_z$ are on the center of edges, and magnetic field components $\mathit{H}_x$, $\mathit{H}_y$, and $\mathit{H}_z$ are on the center of surfaces. In this way, for each electric discrete point there are four magnetic discrete points encircling it. Conversely, for each magnetic discrete point there will be four electric discrete points encircling it. This way of distributing discrete points fit into Faraday's law and Ampere's law in nature. In time aspect, Yee cell adopted the time-stepping manner. For any discrete point in space, the updated value of the electric filed in time is dependent on the stored value of magnetic field of the last time. Iterating the process in a marching-in-time way, we can make an analog to the continuous electromagnetic waves's propagation. 

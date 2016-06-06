@@ -9,11 +9,80 @@ In this chapter, we use the simulation of 2D TM mode as an instance to explain t
 The vector operations, which means processing several data with one operation simultaneously, like inner production, are always used by people. Note that A one-dimensional array of numbers that packed in vector processor is called as a vector, against the scalar which includes only one number, not what is fully described by both a magnitude and a direction in physics. The terms vector and scalar address only the number of data. There are scalar processor and vector processor in CPU, which illustrated in Fig. \ref{ch3 fig:vectorprocessor}. Through the Fig. \ref{ch3 fig:vectorprocessor}, we can see that 4 numbers can be operated at the same time in a vector processor while just one number can be processed in scalar processor. 
 
 \begin{figure}[hbtp]
-\centering
-\includegraphics[width=0.7\linewidth]{pics/vectorprocessor}
-\caption{Vector processor and scalar processor}
-\label{ch3 fig:vectorprocessor}
+	\centering
+\def \xl {4cm}
+\def \m {3.52cm}
+\def \s {1.6cm}
+\def \t {0.8cm}
+\def \fth {0.25}
+\tikzstyle{lbox} = [rectangle, minimum size = \xl,text centered, draw=black,align=center,fill=lightgray!20]
+
+\tikzstyle{sbox} = [rectangle, minimum size = \s,text centered, draw=black,align=center,fill=orange!20]
+
+\tikzstyle{mbox} = [rectangle, minimum width = \m, minimum height=\s,text centered, draw=black,align=center,fill=orange!20]
+
+\tikzstyle{tbox} = [rectangle, minimum size = \t,text centered, draw=black,align=center,fill=orange!20]
+
+\tikzstyle{recbox} = [rectangle, minimum width = \xl, minimum height=\s,text centered, draw=black,align=center,fill=orange!20]
+		\begin{tikzpicture}
+	
+	
+		%part1
+		\node (cpu) at (0,0) [lbox, label=above:CPU] {};
+		\node (core0) at (-\fth*\xl,\fth*\xl) [sbox] {core 0};
+		\node (core1) at (\fth*\xl,\fth*\xl) [sbox,fill=orange!40] {core 1};
+		\node (core2) at (-\fth*\xl,-\fth*\xl) [sbox] {core 2};
+		\node (core3) at (\fth*\xl,-\fth*\xl) [sbox] {core 3};
+		\draw [dashed](1.8*\fth*\xl,1.8*\fth*\xl) -- (3*\fth*\xl,2*\fth*\xl);
+		\draw [dashed](1.8*\fth*\xl,0.2*\fth*\xl) -- (3*\fth*\xl,-2*\fth*\xl);
+		
+		%part2
+		\node (core) [lbox, right of=cpu, xshift=\xl, label=above:Core] {};
+		\node (sp) at (4*\fth*\xl,-\fth*\xl) [sbox] {SP};
+		\node (vp) at (6*\fth*\xl,-\fth*\xl) [sbox] {VP};
+		\node (cache) at (5*\fth*\xl,\fth*\xl) [mbox] {Cache};
+		\draw (3.5*\fth*\xl,-1.8*\fth*\xl) -- (\fth*\xl,-1.2*\xl);
+		\draw [-stealth](3.5*\fth*\xl,-1.8*\fth*\xl) -- (1.5*\fth*\xl,-4.2*\fth*\xl);
+		\draw [-stealth](6*\fth*\xl,-1.8*\fth*\xl) -- (6.5*\fth*\xl,-3*\fth*\xl);
+		
+		%part3
+		\node (SP) [recbox, yshift=-\xl,below of=cpu, label=above:scalar processor] {};
+		\node [tbox,fill=gray!50] at (0,-5*\fth*\xl) {};
+		\node  at (-0.7*\fth*\xl,-5*\fth*\xl) {+};
+		\node [tbox,fill=gray!30] at (-1.4*\fth*\xl,-5*\fth*\xl) {};
+		\node  at (0.7*\fth*\xl,-5*\fth*\xl) {=};
+		\node [tbox,fill=gray!80] at (1.4*\fth*\xl,-5*\fth*\xl) {};
+		
+		%part4
+		\node (VP) [lbox, below of=core, yshift=-\xl, label=above:vector processor] {};
+		\foreach \y in {1,2,3,4}{
+			\node [tbox,fill=gray!30] at (3.6*\fth*\xl,-\y*\fth*\xl-2.5*\fth*\xl) {};	
+		}
+		\foreach \y in {1,2,3,4}{
+			\node at (4.3*\fth*\xl,-\y*\fth*\xl-2.5*\fth*\xl) {+};	
+		}
+		\foreach \y in {1,2,3,4}{
+			\node [tbox,fill=gray!50] at (5*\fth*\xl,-\y*\fth*\xl-2.5*\fth*\xl) {};	
+		}
+		\foreach \y in {1,2,3,4}{
+			\node at (5.7*\fth*\xl,-\y*\fth*\xl-2.5*\fth*\xl) {=};	
+		}
+		\foreach \y in {1,2,3,4}{
+			\node [tbox,fill=gray!80] at (6.4*\fth*\xl,-\y*\fth*\xl-2.5*\fth*\xl) {};	
+		}
+		
+		\draw [dashed](1.8*\fth*\xl,1.8*\fth*\xl) -- (3*\fth*\xl,2*\fth*\xl);
+		\draw [dashed](1.8*\fth*\xl,0.2*\fth*\xl) -- (3*\fth*\xl,-2*\fth*\xl);
+		
+		\end{tikzpicture}
+	\caption{Vector processor and scalar processor}
+	\label{ch3 fig:vectorprocessor}
 \end{figure}
+
+%\begin{figure}[hbtp]
+%\includegraphics[width=0.7\linewidth]{pics/vectorprocessor}
+%
+%\end{figure}
 
 VP is a central processor unit that can operate vectors by a set of specific instructions. Several data are packed in some vectors by using instructions, and sent to VP. After being processed with desired operations, those vectors are sent to memory.
 
@@ -93,7 +162,7 @@ The next, we take a 3$\times$3 size grids as an instance to explain the traditio
 	\node at ($(2*\cell,-2)+0.5*(\cell,\cell)$) {$E_z$};
 	
 	\filldraw[lightgray] ($(3*\cell,-2)$) rectangle ($(3*\cell,-2)+(\cell,\cell)$);
-	\node [align=center] at ($(3*\cell,-2)+0.5*(\cell,\cell)$) {Yee\\网格};
+	\node [align=center] at ($(3*\cell,-2)+0.5*(\cell,\cell)$) {Yee\\cell};
 	\end{tikzpicture}
 	\caption{The position of discrete field points in Yee cells of TM mode wave}
 	\label{ch3 fig:2d yee}
@@ -148,7 +217,7 @@ The traditional data parallelism method of FDTD, did some modifications, which i
 	\node at ($(2*\cell,-2)+0.5*(\cell,\cell)$) {$E_z$};
 	
 	\filldraw[lightgray] ($(3*\cell,-2)$) rectangle ($(3*\cell,-2)+(\cell,\cell)$);
-	\node [align=center] at ($(3*\cell,-2)+0.5*(\cell,\cell)$) {Yee cell};
+	\node [align=center] at ($(3*\cell,-2)+0.5*(\cell,\cell)$) {Yee\\cell};
 	\end{tikzpicture}
 	\caption{The computational model of traditional data parallelism method}
 	\label{ch3 fig:2d old}
@@ -333,11 +402,40 @@ In the traditional computational model, with those auxiliary $H_x$ points, the p
 
 As things are becoming different now, we have to do two modifications. The first, we can no more apply one process over all points of a field vector component. We should divide a rwo into several separate sections and do different processes on them separately, too. The second, we should understand that not all points can be computed by VP, now. We should note that some special points, like some point on head or tail of a row.
 
+\section{Simulation Result}
+In the Fig. \ref{ch3 fig:svp} we illustrate the simulation result of FDTD. 
+
+\begin{figure}
+	\centering
+	\begin{minipage}{0.47\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{s1vp}
+	\end{minipage}
+	\begin{minipage}{0.47\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{s2vp}
+	\end{minipage}
+	\newline
+	\begin{minipage}{0.47\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{s3vp}
+	\end{minipage}
+	\begin{minipage}{0.47\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{s4vp}
+	\end{minipage}
+	\centering
+	\caption{The simulation result of the FDTD with VP scheme}
+	\label{ch3 fig:svp}
+\end{figure}
+
+From Fig. \ref{ch3 fig:svp}, we can see the simulation was successful: the electromagnetic wave was absorbed on the boundaries.
+
 \section{The Comparison between Traditional and Modified Computational Model}
 
 In this paper, we take the computation of 2D FDTD TM wave using Mur ABC as an example to analyze the difference between using data parallelism or not, the traditional and our modified method, and the performance of the modified method in different space and time sizes. Furthermore, we analyze the efficiency of those two methods based on those results.
 
-The framework of the program is presented in the function’s call tree form, which is illustrated in Fig. \ref{ch3 workflow:calltree}. From it, we can see that the program consists of 3 parts which are input, response to initialize data; \lstinline|H\_cmp| and \lstinline|E\_cmp|, two functions that compute electromagnetic field; and other functions that dealing with other things. Once we run the code, the Input works first and then are \lstinline|H\_cmp| and \lstinline|E\_cmp| which are called iterating, the last,other functions do some auxiliary works like saving the result of the computation to files.
+The framework of the program is presented in the function’s call tree form, which is illustrated in Fig. \ref{ch3 fig:workflow calltree}. From it, we can see that the program consists of 3 parts which are input, response to initialize data; \lstinline|H_cmp| and \lstinline|E_cmp|, two functions that compute electromagnetic field; and other functions that dealing with other things. Once we run the code, the Input works first and then are \lstinline|H_cmp| and \lstinline|E_cmp| which are called iterating, the last,other functions do some auxiliary works like saving the result of the computation to files.
 
 \begin{figure}
 	\centering
@@ -351,7 +449,7 @@ The framework of the program is presented in the function’s call tree form, wh
 	\node (compute) [box,right of=main,yshift=\yshift,xshift=\xshift] {\lstinline|compute|};
 	\node (hcmp) [box,right of = compute,yshift=-\yshift,xshift=\xshift] {\lstinline|H_cmp|};
 	\node (ecmp) [box,right of = compute,xshift=\xshift] {\lstinline|E_cmp|};
-	\node (other) [box,right of = compute,yshift=\yshift,xshift=\xshift] {其它};
+	\node (other) [box,right of = compute,yshift=\yshift,xshift=\xshift] {Others};
 	
 	\draw (main) --++(0.5*\xshift,0)--+(0,-\yshift)-- (input);
 	\draw (main) --++(0.5*\xshift,0)--+(0,\yshift)-- (compute);
@@ -363,7 +461,7 @@ The framework of the program is presented in the function’s call tree form, wh
 	\draw [arrow] (ecmp) -- (other);
 	\end{tikzpicture}
 	\caption{The framework of the program}
-	\label{ch3 workflow:calltree}
+	\label{ch3 fig:workflow calltree}
 \end{figure}
 
 We adopted the methods provided by Visual Studio Profiling Tools to collect the performance data of sample project and analyze them. There are two kinds of profiling methods we were using. The first is sampling
@@ -388,7 +486,7 @@ The following tables give out the performances of traditional scheme and our mod
 	\caption{The comparison between using data parallelism or not}\label{ch3: data parallel or not}
 	\begin{tabular}{cccc}
 		\toprule
-		\multirow{2}{3em}{Function}&\multicolumn{2}{c}{Elapsed Exclusive (ms)} & \multirow{2}{11em}{Time saved by using data parallelism}\\
+		\multirow{2}{3em}{Function}&\multicolumn{2}{c}{Elapsed Exclusive (ms)} & \multirow{2}{15em}{Time saved by using data parallelism}\\
 		\cline{2-3}
 		& No parallelism & New model & \\ 
 		
@@ -415,7 +513,7 @@ spent by those two functions are 6160ms and 4100ms, over 99.3\% and 99.2\% of th
 \begin{threeparttable}
 	\begin{tabular}{cccc}
 		\toprule
-		\multirow{2}{3em}{Function}&\multicolumn{2}{c}{Elapsed Inclusive (ms)} & \multirow{2}{11em}{Time saved by using new model}\\ 
+		\multirow{2}{3em}{Function}&\multicolumn{2}{c}{Elapsed Inclusive (ms)} & \multirow{2}{13em}{Time saved by using new model}\\ 
 		\cline{2-3}
 		& Traditional model & New model & \\ 
 		
@@ -441,7 +539,7 @@ What we can see from the Table \ref{ch3: tradition or new} is that the elapsed t
 	\caption{The performance of new model under different space size}\label{ch3: new, size}
 		\begin{tabular}{cccc}
 			\toprule
-			\multirow{2}{3em}{Function}&\multicolumn{3}{c}{Elapsed Inclusive (ms)}\\ 
+			\multirow{2}{4em}{Function}&\multicolumn{3}{c}{Elapsed Inclusive (ms)}\\ 
 			\cline{2-4}
 			& $1000\times1000$ & $2000\times1000$ & $3000\times1000$\\ 
 			
@@ -464,13 +562,13 @@ Based on Table \ref{ch3: new, size}, we can see the time-consuming of the whole 
 	\centering
 	\begin{threeparttable}
 		\caption{The performance of new model under different time size}\label{ch3: new, time}
-		\begin{tabular}{ccc}
+		\begin{tabular}{>{\centering}p{5em}>{\centering}p{8em}c}
 			\toprule
-			\multirow{2}{3em}{Function}&\multicolumn{2}{c}{Elapsed Inclusive (ms)}\\ 
+			\multirow{2}{4em}{Function}&\multicolumn{2}{c}{Elapsed Inclusive (ms)}\\ 
 			\cline{2-3}
 			& 1000 time steps & 3000 time steps\\ 
 			
-			\midrule
+			\hline
 			\lstinline|main| & 7835.78 & 23247.73 \\ 
 			\lstinline|compute| & 7819.76 & 23230.83\\ 
 			\lstinline|H_cmp|& 4.64 & 4.59\\ 
@@ -484,7 +582,7 @@ Based on Table \ref{ch3: new, size}, we can see the time-consuming of the whole 
 \end{table}
 
 From the Table \ref{ch3: new, time}, we can see that with time step increases, the average time-consuming of every time step is decreased.
-The time-consuming of each time step in the 3000 steps condition is 0.99 times to that of 1000 time steps condition. We believe that this is because with the number of iteration increase, the computer can hit the memory more accurately.
+The time-consuming of each time step in the 3000 steps condition is $0.99n$ times to that of 1000 time steps condition. We believe that this is because with the number of iteration increase, the computer can hit the memory more accurately.
 
 \section{Conclusion}
 

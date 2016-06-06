@@ -1,0 +1,78 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{calc,shapes.geometric, arrows}
+\author{Xuanyu Wang}
+\begin{document}
+	\begin{figure}[hp]
+		\centering
+\def \xl {4cm}
+\def \m {3.52cm}
+\def \s {1.6cm}
+\def \t {0.8cm}
+\def \fth {0.25}
+		\begin{tikzpicture}
+				
+				\tikzstyle{lbox} = [rectangle, minimum size = \xl,text centered, draw=black,align=center,fill=lightgray!20]
+				
+				\tikzstyle{sbox} = [rectangle, minimum size = \s,text centered, draw=black,align=center,fill=orange!20]
+				
+				\tikzstyle{mbox} = [rectangle, minimum width = \m, minimum height=\s,text centered, draw=black,align=center,fill=orange!20]
+				
+				\tikzstyle{tbox} = [rectangle, minimum size = \t,text centered, draw=black,align=center,fill=orange!20]
+				
+				\tikzstyle{recbox} = [rectangle, minimum width = \xl, minimum height=\s,text centered, draw=black,align=center,fill=orange!20]
+		%part1
+		\node (cpu) at (0,0) [lbox, label=above:CPU] {};
+		\node (core0) at (-\fth*\xl,\fth*\xl) [sbox] {core 0};
+		\node (core1) at (\fth*\xl,\fth*\xl) [sbox,fill=orange!40] {core 1};
+		\node (core2) at (-\fth*\xl,-\fth*\xl) [sbox] {core 2};
+		\node (core3) at (\fth*\xl,-\fth*\xl) [sbox] {core 3};
+		\draw (1.8*\fth*\xl,1.8*\fth*\xl) -- (3*\fth*\xl,2*\fth*\xl);
+		\draw (1.8*\fth*\xl,0.2*\fth*\xl) -- (3*\fth*\xl,-2*\fth*\xl);
+		
+		%part2
+		\node (core) [lbox, right of=cpu, xshift=\xl, label=above:Core] {};
+		\node (sp) at (4.0*\fth*\xl,-\fth*\xl) [sbox] {SP};
+		\node (vp) at (6.0*\fth*\xl,-\fth*\xl) [sbox] {VP};
+		\node (cache) at (5*\fth*\xl,\fth*\xl) [mbox] {Cache};
+%		\draw [-stealth](3.5*\fth*\xl,-1.8*\fth*\xl) -- (1.5*\fth*\xl,-1*\xl);
+		\draw [-stealth](6*\fth*\xl,-1.8*\fth*\xl) -- (6.5*\fth*\xl,-3*\fth*\xl);
+		
+		%part3
+		\node (SP) [recbox, yshift=-\xl,below of=cpu, label=above:scalar processor] {};
+		\node [tbox,fill=gray!50] at (0,-5*\fth*\xl) {};
+		\node  at (-0.7*\fth*\xl,-5*\fth*\xl) {+};
+		\node [tbox,fill=gray!30] at (-1.4*\fth*\xl,-5*\fth*\xl) {};
+		\node  at (0.7*\fth*\xl,-5*\fth*\xl) {=};
+		\node [tbox,fill=gray!80] at (1.4*\fth*\xl,-5*\fth*\xl) {};
+		
+		%part4
+		\node (VP) [lbox, below of=core, yshift=-\xl, label=above:vector processor] {};
+		\foreach \y in {1,2,3,4}{
+			\node [tbox,fill=gray!30] at (3.6*\fth*\xl,-\y*\fth*\xl-2.5*\fth*\xl) {};	
+		}
+		\foreach \y in {1,2,3,4}{
+			\node at (4.3*\fth*\xl,-\y*\fth*\xl-2.5*\fth*\xl) {+};	
+		}
+		\foreach \y in {1,2,3,4}{
+			\node [tbox,fill=gray!50] at (5*\fth*\xl,-\y*\fth*\xl-2.5*\fth*\xl) {};	
+		}
+		\foreach \y in {1,2,3,4}{
+			\node at (5.7*\fth*\xl,-\y*\fth*\xl-2.5*\fth*\xl) {=};	
+		}
+		\foreach \y in {1,2,3,4}{
+			\node [tbox,fill=gray!80] at (6.4*\fth*\xl,-\y*\fth*\xl-2.5*\fth*\xl) {};	
+		}
+
+		%arrows
+		\draw [-stealth](3.5*\fth*\xl,-1.8*\fth*\xl) -- (1.5*\fth*\xl,-4.2*\fth*\xl);
+		\end{tikzpicture}
+		%\caption{The spatial discrete structure of Yee cell}\label{ch2 fig: yee cell}
+	\end{figure}
+\end{document}

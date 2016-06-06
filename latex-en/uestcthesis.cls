@@ -33,7 +33,7 @@
 \LoadClass[fontset = windowsold,cs4size,UTF8,fancyhdr,hyperref,fntef,openany]{ctexbook}[2011/03/11]
 \def\CTEX@contentsname{目录}
 \def\CTEX@figurename{Figure}
-\def\CTEX@tablename{表}
+\def\CTEX@tablename{Table}
 \def\CTEX@bibname{参考文献}
 \def\CTEX@appendixname{附录~}
 \def\CTEX@fs@sfour{12.05}  \def\CTEX@fs@sfourskip{14.45}  %小四号   12bp
@@ -52,16 +52,18 @@
 \renewcommand{\ttfamily}{\CTEX@save@ttfamily \CJKfamily {rm}}
 \RequirePackage{etoolbox}[2011/01/03]
 \RequirePackage{ifthen}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Degree %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\bachelor@uestcthesis}{
 \newcommand{\degree@uestcthesis}{bachelor}
 \newcommand{\multibibflag@uestcthesis}{}
 
 \newcommand{\thesisname@degree}{电子科技大学学士学位论文}
 \newcommand{\thesisname@english}{Bachelor Thesis of University of Electronic Science and Technology of China}%为bachelor选项下使用english选项而设。
-\newcommand{\chapternumberformat@uestcthesis}{\arabic{chapter}}
+%\newcommand{\chapternumberformat@uestcthesis}{\chinese{chapter}}
+\newcommand{\chapternumberformat@uestcthesis}{\chinese{chapter}}
 \newcommand{\publicationsname@degree}{}%为bachelor选项下使用english选项而设。
-%\newcommand{\thesisname@english}{}%为bachelor选项下使用english选项而设。
 }
+
 \newcommand{\master@uestcthesis}{
 \newcommand{\degree@uestcthesis}{master}
 
@@ -78,6 +80,7 @@
 
 \newcommand{\chapternumberformat@uestcthesis}{\chinese{chapter}}
 }
+
 \newcommand{\doctor@uestcthesis}{
 \newcommand{\degree@uestcthesis}{doctor}
 \newcommand{\doctortitlepage@uestcthesis}{}%先声明宏，稍后定义。
@@ -96,6 +99,7 @@
 
 \newcommand{\chapternumberformat@uestcthesis}{\chinese{chapter}}
 }
+%%%%%%%%%%%%%%%%%%%%%%%%%%% 标题 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\tocname@uestcthesis}{目录}
 \newcommand{\contentsname@uestcthesis}{目\enspace 录}
 \newcommand{\chaptername@uestcthesis}{
@@ -116,8 +120,11 @@
 \newcommand{\acronymheader@uestcthesis}{缩略词}
 \newcommand{\acronymfull@uestcthesis}{英文全称}
 \newcommand{\acronymtranslation@uestcthesis}{中文全称}
+\renewcommand*\figurename{\CTEX@figurename}
+\renewcommand*\tablename{\CTEX@tablename}
 \renewcommand{\listfigurename}{图目录}
 \renewcommand{\listtablename}{表目录}
+
 \newcommand{\english@uestcthesis}{
 \renewcommand{\tocname@uestcthesis}{Contents}
 \renewcommand{\contentsname@uestcthesis}{{\bf Contents}}
@@ -134,8 +141,8 @@
 \renewcommand{\CTEX@bibname}{References}
 \renewcommand{\publicationsname@degree}{\publicationsname@english}
 \renewcommand{\thesisname@degree}{\thesisname@english}
-\renewcommand{\CTEX@figurename}{Figure}
-\renewcommand{\CTEX@tablename}{Table}
+\renewcommand*\figurename{\CTEX@figurename}
+\renewcommand*\tablename{\CTEX@tablename}
 \renewcommand{\glossaryname@uestcthesis}{Glossary}
 \renewcommand{\acronymname@uestcthesis}{Acronyms}
 \renewcommand{\entryname@uestcthesis}{Notation}
@@ -150,6 +157,8 @@
 \renewcommand{\CTEX@contentsname}{\zihao{-3}Contents}
 \ctexset{bibname=References,appendixname=Appendix~}
 }
+
+%%%%%%%%%%%%% Document type %%%%%%%%%%%%%%%%%%%%
 \DeclareOption{bachelor}{\bachelor@uestcthesis}
 \DeclareOption{master}{\master@uestcthesis}
 \DeclareOption{doctor}{\doctor@uestcthesis}
@@ -160,11 +169,14 @@
 \DeclareOption{cv}{
 \newcommand{\usecv@uestcthesis}{\input{contents/cv.tex}}
 }
+%%%%%%%% 文档开头 %%%%%%%%%
 \AtBeginDocument{\def\Hy@org@chapter [#1]#2{\ifnum \c@secnumdepth >\m@ne \if@mainmatter \refstepcounter {chapter}\typeout {\CTEXthechapter }\addcontentsline {toc}{chapter} {\protect \numberline {\CTEXthechapter \hspace {0.3em}}#1}\else \addcontentsline {toc}{chapter}{#1}\fi \else \addcontentsline {toc}{chapter}{#1}\fi \chaptermark {#1}%
  %\addtocontents {lof}{\protect \addvspace {10\p@ }}\addtocontents {lot}{\protect \addvspace {10\p@ }}%
 \if@twocolumn \@topnewpage [\@makechapterhead {#2}]\else \@makechapterhead {#2}\@afterheading \fi }}
 \newcommand{\insertlof}{}
 \newcommand{\insertlot}{}
+
+%%%%%%%%%%%%% 图目录 %%%%%%%%%%%%%%%%%%
 \DeclareOption{listoffigures}{\renewcommand{\insertlof}{%
 \clearpage{\pagestyle{empty}\cleardoublepage}
 \figureslistmatter
@@ -172,13 +184,18 @@
 0em\relax \rightskip \@tocrmarg \parfillskip -\rightskip \parindent 0em\relax
 \@afterindenttrue \interlinepenalty \@M \leavevmode \@tempdima 1em\relax \advance
 \leftskip \@tempdima \null \nobreak \hskip -\leftskip {\CTEX@figurename~##1}\nobreak \leaders
+%\leftskip \@tempdima \null \nobreak \hskip -\leftskip {Figure~##1}\nobreak \leaders
 \hbox {$\m@th \mkern \@dotsep mu\hbox {.}\mkern \@dotsep mu$}\hfill \nobreak
 \hb@xt@ \@pnumwidth {\hfil \normalfont \normalcolor ##2}\par }\fi}
 \listoffigures
 }}
-
+%%%%%%%%%%%%% 表目录 %%%%%%%%%%%%%%%%%%
 \DeclareOption{listoftables}{\renewcommand{\insertlot}{%
-\clearpage{\pagestyle{empty}\cleardoublepage}
+%\clearpage{\pagestyle{empty}\cleardoublepage}
+\clearpage
+\pagestyle{empty}
+\cleardoublepage
+\addtocounter{page}{-1}
 \tableslistmatter
 \def\l@table##1##2{\ifnum 0>\c@tocdepth \else \vskip \z@ \@plus .2\p@ {\leftskip
 0em\relax \rightskip \@tocrmarg \parfillskip -\rightskip \parindent 0em\relax
@@ -188,6 +205,8 @@
 \hb@xt@ \@pnumwidth {\hfil \normalfont \normalcolor ##2}\par }\fi}
 \listoftables
 }}
+
+
 \ProcessOptions\relax
 \ifdefstring{\degree@uestcthesis}{bachelor}{
 \RequirePackage[a4paper,headheight=12.65pt,headsep=5.65mm,centering,
@@ -237,6 +256,8 @@
   \vspace{2.736mm}%
 \end{figure}%
 }
+
+%%%%%%%%%%%%%%%%%%%% 多图 %%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\clearallsubfigcaptions}{
 \gdef\subfigcaptionA{}\gdef\subfigcaptionB{}\gdef\subfigcaptionC{}%
 \gdef\subfigcaptionD{}\gdef\subfigcaptionE{}\gdef\subfigcaptionF{}%
@@ -273,11 +294,13 @@
 {\ifthenelse{\equal{\subfigcaptionS}{}}{\gdef\subfigcaptionS{；{(s)}{\ignorespaces ##2}}}
 {\ifthenelse{\equal{\subfigcaptionT}{}}{\gdef\subfigcaptionT{；{(t)}{\ignorespaces ##2}}}
 {\gdef\subfigcaptionA{子图不能超过20个！！！}}}}}}}}}}}}}}}}}}}}}}
+
 \newcommand{\allsubpiccaptions}{%
 \subfigcaptionA\subfigcaptionB\subfigcaptionC\subfigcaptionD\subfigcaptionE%
 \subfigcaptionF\subfigcaptionG\subfigcaptionH\subfigcaptionI\subfigcaptionJ%
 \subfigcaptionK\subfigcaptionL\subfigcaptionM\subfigcaptionN\subfigcaptionO%
 \subfigcaptionP\subfigcaptionQ\subfigcaptionR\subfigcaptionS\subfigcaptionT}
+
 \newcommand{\subpiclabel}{}
 \newcommand{\subpiccaption}{}
 \newsavebox{\tempsubpiccaptionbox}
@@ -1014,24 +1037,24 @@ pdfdisplaydoctitle=true
  {#6{\hskip #3\relax \@svsec \csname CTEX@#1@titleformat\endcsname #8}\csname #1mark
  \endcsname {#7}}\fi \@xsect {#5}}
 
-\renewcommand{\chaptermark}[1]{\markboth{外文资料原文}{}}
-\def\leftmark{外文资料原文}
+\renewcommand{\chaptermark}[1]{\markboth{Foreign Language Material}{}}
+\def\leftmark{Foreign Language Material}
 \newpage
 \phantomsection
-\addcontentsline{toc}{chapter}{外文资料原文}
+\addcontentsline{toc}{chapter}{Foreign Language Material}
 
-\renewcommand{\CTEX@figurename}{Figure}
-\renewcommand{\CTEX@tablename}{Table}
+\renewcommand*\figurename{\CTEX@figurename}
+\renewcommand*\tablename{\CTEX@tablename}
 
 \include{contents/original}
 \newpage
 \phantomsection
-\addcontentsline{toc}{chapter}{外文资料译文}
-\renewcommand{\chaptermark}[1]{\markboth{外文资料译文}{}}
-\def\leftmark{外文资料译文}
+\addcontentsline{toc}{chapter}{The Translation of The Foreign Language Material}
+\renewcommand{\chaptermark}[1]{\markboth{The Translation of The Foreign Language Material}{}}
+\def\leftmark{The Translation of The Foreign Language Material}
 
-\renewcommand{\CTEX@figurename}{Figure}
-\renewcommand{\CTEX@tablename}{表}
+\renewcommand*\figurename{\CTEX@figurename}
+\renewcommand*\tablename{\CTEX@tablename}
 
 \setcounter{chapter}{0}
 

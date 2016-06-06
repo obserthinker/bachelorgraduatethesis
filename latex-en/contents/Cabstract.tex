@@ -1,5 +1,5 @@
 % !Mode:: "TeX:UTF-8"
 
 \begin{Cabstract}{时域有限差分}{CUDA}{矢量处理器}{数据并行}{硬件加速}
-本文针对时域有限差分（Finite Difference Time Domain，FDTD）方法的两种主流硬件并行加速途径进行了研究。针对使用矢量处理器（Vector Algorithm Logic Unit，VALU）的加速方法，首先进行了加速的理论分析，然后基于现有方案，同时结合FDTD的边界条件的特征，提出了一种新的使用VALU加速计算的计算模型。经过实验，相比以往方案改计算模型可以减少约3.45\%的计算时间。针对使用统一计算设备架构（Compute Unified Device Architecture，CUDA）的图像处理器（Graphic Processor Unit，GPU）的加速方法，我们实现了对截断边界、Mur吸收边界以及CPML吸收边界的加速。对比两种硬件并行加速方案，我们可以看到CUDA有更优越的表现。
+本文针对时域有限差分（Finite Difference Time Domain，FDTD）方法的两种主流硬件并行加速途径进行了研究。针对使用矢量处理器（Vector Processor，VP）的加速方法，首先进行了加速的理论分析，然后基于现有方案，同时结合FDTD的边界条件的特征，提出了一种新的使用VALU加速计算的计算模型。经过实验，相比以往方案改计算模型可以减少约3.45\%的计算时间。针对使用统一计算设备架构（Compute Unified Device Architecture，CUDA）的图像处理器（Graphic Processor Unit，GPU）的加速方法，我们实现了对截断边界、Mur吸收边界以及CPML吸收边界的加速。对比两种硬件并行加速方案，我们可以看到CUDA有更优越的表现。
 \end{Cabstract}

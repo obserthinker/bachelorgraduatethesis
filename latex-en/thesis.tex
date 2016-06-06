@@ -1,6 +1,6 @@
 % !Mode:: "TeX:UTF-8"
 
-\documentclass[bachelor,english]{uestcthesis}
+\documentclass[bachelor,english,listoffigures,listoftables]{uestcthesis}
 \usepackage{multirow}
 \usepackage{xcolor}
 \usepackage{ctex}
@@ -8,6 +8,8 @@
 \usepackage{makecell}
 \usepackage{threeparttable}
 \usepackage{pdfpages}
+\AtBeginEnvironment{figure}{\setlength{\intextsep}{3.118mm}}
+\AtBeginEnvironment{figure}{\setlength{\belowcaptionskip}{2.736mm}}
 \usepackage{tikz}
 \usetikzlibrary{calc,shapes.geometric, arrows}
 \title{High Performance Parallel FDTD  Computation by Using Vector Processor and CUDA}
